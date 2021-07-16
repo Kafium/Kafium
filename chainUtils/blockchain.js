@@ -20,7 +20,7 @@ class Block {
   }
 
   calculateHash () {
-    return crypto.createHash('sha256').update(this.previousHash + this.epochElapsed + this.type + (this.data?.sender ?? '') + (this.data?.receiver ?? '') + (this.data?.amount ?? '')).digest('hex')
+    return crypto.createHash('whirlpool').update(this.previousHash + this.epochElapsed + this.type + (this.data?.sender ?? '') + (this.data?.receiver ?? '') + (this.data?.amount ?? '')).digest('hex')
   }
 
   toData () {
