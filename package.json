@@ -1,0 +1,16 @@
+{
+    "name": "kafium",
+    "version": "0.0.3",
+    "description": "Kafium decentralised blochchain network",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "license": "GNU General Public License v2.0",  
+    "engines": {
+        "node": "14.x"
+    },
+    "dependencies": {
+        "elliptic": "^6.5.4",
+        "public-ip": "^4.0.4"
+    }
+}
