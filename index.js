@@ -53,7 +53,6 @@ consoleUtils.prompt.on('line', function (text) {
     P2P.knownPeers.forEach((key) => { peers.push(key) })
 
     consoleUtils.log(`Known peers: ${peers.join(', ')}`)
-    console.log(Array.from(P2P.knownPeers))
   }
 
   if (text.startsWith('blocks')) {
@@ -93,14 +92,14 @@ consoleUtils.prompt.on('line', function (text) {
 consoleUtils.prompt.on('SIGINT', function() {
   consoleUtils.log('Seems like its closing, creating an auto backup...')
   const now = Date.now()
-  fs.appendFile(`backups/backup-${now}.kafium`, '[\n', (err) => {
+  fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), '[\n', (err) => {
     if (err) { consoleUtils.log(err) }
     kafium.chain.forEach((block, index) => {
-      fs.appendFile(`backups/backup-${now}.kafium`, `${kafium.chain.length - 1 === index ? block.toData() : block.toData() + ','}\n`, (err) => {
+      fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), `${kafium.chain.length - 1 === index ? block.toData() : block.toData() + ','}\n`, (err) => {
         if (err) { consoleUtils.log(err) }
       })
     })
-    fs.appendFile(`backups/backup-${now}.kafium`, ']', (err) => {
+    fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), ']', (err) => {
       if (err) { consoleUtils.log(err) }
     })
     consoleUtils.log(`Created backup! Backup id is ${now}.`)

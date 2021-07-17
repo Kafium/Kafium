@@ -26,19 +26,19 @@ function serveTCPApi (kafium, port) {
   server.on('connection', function (socket) {
     p2p.emit('apiConnect', socket)
     socket.on('data', function (data) {
-      const packet = data.toString().split('\n')
+      const packet = data.toString().split('&')
       packet.forEach(data => {
         if (!data) return
         if (data.startsWith('getWalletData/')) { // TCP Api : getWalletData (wallet)
-          socket.write(`walletData/{"balance": ${kafium.getBalanceOfAddress(data.split('/')[1])}}\n`)
+          socket.write(`walletData/{"balance": ${kafium.getBalanceOfAddress(data.split('/')[1])}}&`)
         }
 
         if (data.startsWith('getBlockByHash/')) {
-          socket.write(`Block/${kafium.getBlockByHash(data.split('/')[1]).toOnelineData()}`)
+          socket.write(`Block/${kafium.getBlockByHash(data.split('/')[1]).toOnelineData()}&`)
         }
 
         if (data.startsWith('getLastHash')) { // TCP Api : getLastHash
-          socket.write(`lastHash/{"hash": "${kafium.getLatestBlock().hash}"}\n`)
+          socket.write(`lastHash/{"hash": "${kafium.getLatestBlock().hash}"}&`)
         }
 
         if (data.startsWith('newTransaction/')) { // TCP Api : newTransaction
@@ -52,7 +52,7 @@ function serveTCPApi (kafium, port) {
           block.signTransactionManually(signature)
           if (block.isValid()) {
             kafium.chain.push(block)
-            socket.write('transactionSuccess\n')
+            socket.write('transactionSuccess&')
           }
         }
       })
