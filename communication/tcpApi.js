@@ -32,9 +32,15 @@ function serveTCPApi (kafium, port) {
         if (data.startsWith('getWalletData/')) { // TCP Api : getWalletData (wallet)
           socket.write(`walletData/{"balance": ${kafium.getBalanceOfAddress(data.split('/')[1])}}\n`)
         }
+
+        if (data.startsWith('getBlockByHash/')) {
+          socket.write(`Block/${kafium.getBlockByHash(data.split('/')[1]).toOnelineData()}`)
+        }
+
         if (data.startsWith('getLastHash')) { // TCP Api : getLastHash
           socket.write(`lastHash/{"hash": "${kafium.getLatestBlock().hash}"}\n`)
         }
+
         if (data.startsWith('newTransaction/')) { // TCP Api : newTransaction
           const args = data.replace('newTransaction/', '').split('|')
           const sender = args[0]

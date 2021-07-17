@@ -1,6 +1,7 @@
 const crypto = require('crypto')
 const EC = require('elliptic').ec
 const ec = new EC('p224')
+const R = require('ramda')
 
 class Block {
   constructor (previousHash, epochElapsed, type, data) {
@@ -37,6 +38,10 @@ class Block {
           "external": "${this.data.external ?? 'undefined'}"
         }
       }`
+  }
+
+  toOnelineData () {
+    return `{ "previousHash": "${this.previousHash}", "epochElapsed": ${this.epochElapsed}, "type": "${this.type}", "hash": "${this.hash}", "data": {"sender": "${this.data.sender ?? 'undefined'}", "receiver": "${this.data.receiver ?? 'undefined'}", "amount": ${this.data.amount ?? 'undefined'}, "signature": "${this.data.signature ?? 'undefined'}", "external": "${this.data.external ?? 'undefined'}"}}`
   }
 
   signTransaction (signingKey) {
@@ -78,6 +83,10 @@ class Blockchain {
 
   getLatestBlock () {
     return this.chain[this.chain.length - 1]
+  }
+
+  getBlockByHash (hash) {
+    return R.find(R.propEq('hash', hash), this.chain)
   }
 
   getBalanceOfAddress (address) {
