@@ -56,7 +56,6 @@ function serveP2P (kafium, options) {
         if (data.startsWith('newPeer/')) {
           if (knownPeers.has(data.replace('newPeer/', ''))) return
           const args = data.split('/')[1].split('|')
-          socket.peerName, socket.ipAddress = args[0], args[1]
           if (!args) return socket.write('Error/NeedAPeerName\n')
           socket.write(`newPeer/${options.peerName}|${options.debug ? '127.0.0.1' : publicIp}:${options.port}\n`)
           for (const peer of knownPeers) {
@@ -66,7 +65,6 @@ function serveP2P (kafium, options) {
           knownPeers.add(data.replace('newPeer/', ''))
           p2p.emit('newPeer', data.replace('newPeer/', ''))
         } else {
-          console.log(`Sender: ${socket.peerName}`)
           p2p.emit('data', data)
         }
       })
@@ -74,22 +72,18 @@ function serveP2P (kafium, options) {
   })
 
   knownPeers.broadcast = function (data) {
-    for (const peer of this) {
+    this.forEach(function(peer) {
       const p2pIpAddress = peer.split('|')[1]
       const p2pClient = new net.Socket()
       p2pClient.connect(p2pIpAddress.split(':')[1], p2pIpAddress.split(':')[0], function () {
-        p2pClient.write(data, (err) => {
+        p2pClient.write(`${data}\n`, (err) => {
           if (err) throw err
           p2pClient.end()
         })
       })
-    }
+    })
   }
-
-  p2p.broadcastData = function (data) {
-    knownPeers.broadcast(data)
-  }
-
+  
   p2p.end = function () {
     server.close()
     server.removeAllListeners()

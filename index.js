@@ -45,7 +45,7 @@ TCPApi.on('ready', function () {
 consoleUtils.prompt.on('line', function (text) {
   if (text.startsWith('sendData')) {
     const data = text.split(' ')
-    P2P.broadcastData(data[1])
+    P2P.knownPeers.broadcast(data[1])
   }
 
   if (text.startsWith('peerList')) {
@@ -53,12 +53,11 @@ consoleUtils.prompt.on('line', function (text) {
     P2P.knownPeers.forEach((key) => { peers.push(key) })
 
     consoleUtils.log(`Known peers: ${peers.join(', ')}`)
+    console.log(Array.from(P2P.knownPeers))
   }
 
   if (text.startsWith('blocks')) {
-    let blocksCount = 0
-    kafium.chain.forEach(block => { blocksCount++ })
-    consoleUtils.log(`Total blocks: ${blocksCount}`)
+    consoleUtils.log(`Total blocks: ${kafium.chain.length}`)
   }
 
   if (text.startsWith('createBackup')) {
@@ -86,10 +85,6 @@ consoleUtils.prompt.on('line', function (text) {
 
   if (text.startsWith('debug')) {
     console.log(kafium.chain)
-  }
-
-  if (text.startsWith('sendData')) {
-    P2P.broadcastData(text.split(' ')[1])
   }
 
   consoleUtils.prompt.prompt(true)
