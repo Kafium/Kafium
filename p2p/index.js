@@ -15,16 +15,16 @@ function serveP2P (kafium, options) {
 
     p2pSetup.connect(options.P2P.split(':')[1], options.P2P.split(':')[0], function () {
       publicIp.v4().then(publicIp => {
-        p2pSetup.write(`newPeer/${options.peerName}|${options.debug ? '127.0.0.1' : publicIp}:${options.port}&`)
+        p2pSetup.write(`newPeer/${options.peerName}|${options.debug ? '127.0.0.1' : publicIp}:${options.port}&&`)
       })
 
       p2pSetup.on('data', function (data) {
-        const packet = data.toString().split('&')
+        const packet = data.toString().split('&&')
         packet.forEach(data => {
           if (!data) return
           if (data.toString().startsWith('newPeer')) {
             if (knownPeers.has(data.replace('newPeer/', ''))) return
-            knownPeers.broadcast(`${data}&`)
+            knownPeers.broadcast(`${data}&&`)
             knownPeers.add(data.replace('newPeer/', ''))
             p2p.emit('newPeer', data.replace('newPeer/', ''))
           }
@@ -50,16 +50,16 @@ function serveP2P (kafium, options) {
 
   server.on('connection', function (socket) {
     socket.on('data', function (data) {
-      const packet = data.toString().split('&')
+      const packet = data.toString().split('&&')
       packet.forEach(data => {
         if (!data) return
         if (data.startsWith('newPeer/')) {
           if (knownPeers.has(data.replace('newPeer/', ''))) return
           const args = data.split('/')[1].split('|')
-          if (!args) return socket.write('Error/NeedAPeerName&')
-          socket.write(`newPeer/${options.peerName}|${options.debug ? '127.0.0.1' : publicIp}:${options.port}&`)
+          if (!args) return socket.write('Error/NeedAPeerName&&')
+          socket.write(`newPeer/${options.peerName}|${options.debug ? '127.0.0.1' : publicIp}:${options.port}&&`)
           for (const peer of knownPeers) {
-            socket.write(`newPeer/${peer}&`)
+            socket.write(`newPeer/${peer}&&`)
           }
           knownPeers.broadcast(data)
           knownPeers.add(data.replace('newPeer/', ''))
@@ -76,7 +76,7 @@ function serveP2P (kafium, options) {
       const p2pIpAddress = peer.split('|')[1]
       const p2pClient = new net.Socket()
       p2pClient.connect(p2pIpAddress.split(':')[1], p2pIpAddress.split(':')[0], function () {
-        p2pClient.write(`${data}&`, (err) => {
+        p2pClient.write(`${data}&&`, (err) => {
           if (err) throw err
           p2pClient.end()
         })
