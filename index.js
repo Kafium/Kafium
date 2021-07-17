@@ -3,22 +3,22 @@ const fs = require('fs')
 
 const parseArgv = require('./utils/argParser')(process.argv)
 const consoleUtils = require('./utils/consoleWrapper')
-
 const P2PNetwork = require('./p2p')
 const TCP = require('./communication/tcpApi')
 
 const blockchain = require('./chainUtils/blockchain')
 
 const kafium = new blockchain.Blockchain()
+const config = require('./config.json')
 
 const networkingSettings = {}
-networkingSettings.port = parseArgv.port ?? 2555
-networkingSettings.peerName = parseArgv.peerName ?? 'Defaultpeer'
-networkingSettings.P2P = parseArgv.P2P
-networkingSettings.debug = parseArgv.debug ?? false
+networkingSettings.port = parseArgv.port ?? config.port ?? 2555
+networkingSettings.peerName = parseArgv.peerName ?? config.peerName ?? 'Defaultpeer'
+networkingSettings.P2P = parseArgv.P2P ?? config.P2P
+networkingSettings.debug = parseArgv.debug ?? config.debug ?? false
 
 let P2P = P2PNetwork.serveP2P(kafium, networkingSettings)
-const TCPApi = TCP.serveTCPApi(kafium, parseArgv.tcpApi ?? 3344)
+const TCPApi = TCP.serveTCPApi(kafium, parseArgv.tcpApi ?? config.tcpApi ?? 2556)
 
 P2P.on('ready', function () {
   consoleUtils.log('Connected and served P2P networking.!')
