@@ -5,7 +5,7 @@
     "scripts": {
         "start": "node index.js"
     },
-    "license": "GNU General Public License v2.0",  
+    "license": "GNU General Public License v2.0",
     "engines": {
         "node": "14.x"
     },
