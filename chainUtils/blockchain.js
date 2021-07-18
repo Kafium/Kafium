@@ -53,6 +53,7 @@ class Block {
       this.data.sender = JSONBlock.data.sender
       this.data.receiver = JSONBlock.data.receiver
       this.data.amount = JSONBlock.data.amount
+      this.data.signature = JSONBlock.data.signature ?? null
     }
 
     this.data.external = JSONBlock.data.external
@@ -89,8 +90,8 @@ class Block {
 
 class Blockchain extends EventEmitter {
   constructor () {
-    this.chain = [ this.createGenesisBlock() ]
     super()
+    this.chain = [ this.createGenesisBlock() ]
   }
 
   createGenesisBlock () {

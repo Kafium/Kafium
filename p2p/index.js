@@ -53,12 +53,14 @@ function serveP2P (kafium, options) {
   })
 
   server.on('connection', function (socket) {
+    let auth
+
     socket.on('data', function (data) {
       const packet = data.toString().split('&&')
       packet.forEach(data => {
         if (!data) return
         if (data.startsWith('declareMe/')) {
-          socket.peerData = `${data.split('/')[1].split('|')[0]}|${data.split('/')[1].split('|')[1]}`
+          auth = `${data.split('/')[1]}`
         }
 
         if (data.startsWith('newPeer/')) {
@@ -77,11 +79,11 @@ function serveP2P (kafium, options) {
         if (data.startsWith('updatedBlockchainSize/')) {
           if(parseInt(data.split('/')[1]) > kafium.chain.length) {
             const p2pRequest = new net.Socket()
-            p2pRequest.connect(socket.peerData.split('|').split(':')[1], socket.peerData.split('|').split(':')[0], function () {
+            p2pRequest.connect(auth.split('|')[1].split(':')[1], auth.split('|')[1].split(':')[0], function () {
               p2pRequest.write(`requestBlock/${data.split('/')[1]}`)
               socketUtils.waitForData(p2pRequest, 'requestedBlock').then(data => {
                 const block = new bUtils.Block('', '', '', '')
-                block.importFromJSON(JSON.parse(data.split('/')[1].replace('&&', '')))
+                block.importFromJSON(JSON.parse(data.toString().replace('requestedBlock/', '').replace('&&', '')))
                 kafium.addBlock(block)
               })
             })
@@ -89,7 +91,7 @@ function serveP2P (kafium, options) {
         }
 
         if (data.startsWith('requestBlock/')) {
-          socket.write(`requestedBlock/${kafium.chain[data.split('/')[1]].toData()}&&`)
+          socket.write(`requestedBlock/${kafium.chain[parseInt(data.split('/')[1]) - 1].toData()}&&`)
         }
       })
     })
