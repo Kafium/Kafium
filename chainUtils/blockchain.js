@@ -90,6 +90,14 @@ class Blockchain {
     return R.find(R.propEq('hash', hash), this.chain)
   }
 
+  addBlock (block) {
+    if(block.isValid() === true) {
+      this.chain.push(block)
+    } else {
+      throw new Error('Block is not valid!?')
+    }
+  }
+
   getBalanceOfAddress (address) {
     let balance = 0
 
