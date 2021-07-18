@@ -1,10 +1,9 @@
+const EventEmitter = require('events').EventEmitter
 const crypto = require('crypto')
+
 const EC = require('elliptic').ec
 const ec = new EC('p224')
-
 const R = require('ramda')
-
-var EventEmitter = require('events').EventEmitter;
 
 class Block {
   constructor (previousHash, epochElapsed, type, data) {
@@ -43,8 +42,20 @@ class Block {
 }`
   }
 
-  toOnelineData () {
-    return `{ "previousHash": "${this.previousHash}", "epochElapsed": ${this.epochElapsed}, "type": "${this.type}", "hash": "${this.hash}", "data": {"sender": "${this.data.sender ?? 'undefined'}", "receiver": "${this.data.receiver ?? 'undefined'}", "amount": ${this.data.amount ?? 'undefined'}, "signature": "${this.data.signature ?? 'undefined'}", "external": "${this.data.external ?? 'undefined'}"}}`
+  importFromJSON (JSONBlock) {
+    this.previousHash = JSONBlock.previousHash
+    this.epochElapsed = JSONBlock.epochElapsed
+    this.type = JSONBlock.type
+    this.hash = JSONBlock.hash
+    this.data = {}
+
+    if (this.type === 'TRANSACTION') {
+      this.data.sender = JSONBlock.data.sender
+      this.data.receiver = JSONBlock.data.receiver
+      this.data.amount = JSONBlock.data.amount
+    }
+
+    this.data.external = JSONBlock.data.external
   }
 
   signTransaction (signingKey) {
