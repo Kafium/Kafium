@@ -1,7 +1,10 @@
 const crypto = require('crypto')
 const EC = require('elliptic').ec
 const ec = new EC('p224')
+
 const R = require('ramda')
+
+var EventEmitter = require('events').EventEmitter;
 
 class Block {
   constructor (previousHash, epochElapsed, type, data) {
@@ -73,9 +76,10 @@ class Block {
   }
 }
 
-class Blockchain {
+class Blockchain extends EventEmitter {
   constructor () {
-    this.chain = [this.createGenesisBlock()]
+    this.chain = [ this.createGenesisBlock() ]
+    super()
   }
 
   createGenesisBlock () {
@@ -93,6 +97,7 @@ class Blockchain {
   addBlock (block) {
     if(block.isValid() === true) {
       this.chain.push(block)
+      this.emit('newBlock', block)
     } else {
       throw new Error('Block is not valid!?')
     }
