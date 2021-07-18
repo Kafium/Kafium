@@ -34,7 +34,7 @@ function serveTCPApi (kafium, port) {
         }
 
         if (data.startsWith('getBlockByHash/')) {
-          socket.write(`Block/${kafium.getBlockByHash(data.split('/')[1]).toOnelineData()}&&`)
+          socket.write(`Block/${kafium.getBlockByHash(data.split('/')[1]).toData()}&&`)
         }
 
         if (data.startsWith('getLastHash')) { // TCP Api : getLastHash

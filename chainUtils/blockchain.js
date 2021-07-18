@@ -26,18 +26,18 @@ class Block {
 
   toData () {
     return `{
-        "previousHash": "${this.previousHash}",
-        "epochElapsed": ${this.epochElapsed},
-        "type": "${this.type}",
-        "hash": "${this.hash}",
-        "data": {
-          "sender": "${this.data.sender ?? 'undefined'}",
-          "receiver": "${this.data.receiver ?? 'undefined'}",
-          "amount": ${this.data.amount ?? 'undefined'},
-          "signature": "${this.data.signature ?? 'undefined'}",
-          "external": "${this.data.external ?? 'undefined'}"
-        }
-      }`
+  "previousHash": "${this.previousHash}",
+  "epochElapsed": ${this.epochElapsed},
+  "type": "${this.type}",
+  "hash": "${this.hash}",
+  "data": {
+    "sender": "${this.data.sender ?? 'undefined'}",
+    "receiver": "${this.data.receiver ?? 'undefined'}",
+    "amount": ${this.data.amount ?? 'undefined'},
+    "signature": "${this.data.signature ?? 'undefined'}",
+    "external": "${this.data.external ?? 'undefined'}"
+  }
+}`
   }
 
   toOnelineData () {
@@ -57,6 +57,7 @@ class Block {
   }
 
   signTransactionManually (signature) {
+    if (!this.type === 'TRANSACTION') throw new Error('Cannot sign transaction, its not a transaction block!')
     this.data.signature = signature
   }
 
