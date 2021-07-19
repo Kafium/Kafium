@@ -51,10 +51,11 @@ function serveTCPApi (kafium, port) {
 
           const block = new bUtils.Block(kafium.getLatestBlock().hash, parseInt(createdAt), 'TRANSACTION', { sender: sender, receiver: receiver, amount: parseInt(amount) })
           block.signTransactionManually(signature)
-          if (block.isValid()) {
-            kafium.addBlock(block)
+          kafium.addBlock(block).then(block => {
             socket.write('transactionSuccess&&')
-          }
+          }).catch((error) => {
+            socket.write(`Error/${error}`)
+          })
         }
       })
     })
