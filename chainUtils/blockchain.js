@@ -107,11 +107,13 @@ class Blockchain extends EventEmitter {
   }
 
   addBlock (block) {
-    if(block.isValid() === true) {
-      this.chain.push(block)
-      this.emit('newBlock', block)
-    } else {
-      throw new Error('Block is not valid!?')
+    if (block.type === 'TRANSACTION') {
+      if(block.isValid() === true) {
+        if(block.data.amount >= this.getBalanceOfAddress(block.data.sender)) {
+          this.chain.push(block)
+          this.emit('newBlock', block)
+        } else { throw new Error('Insufficent balance?!') }
+      } else { throw new Error('Block is not valid?!')}
     }
   }
 
