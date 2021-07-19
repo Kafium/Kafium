@@ -40,7 +40,7 @@ function serveP2P (kafium, options) {
   const server = new net.Server()
 
   server.on('listening', function () {
-    p2p.emit('ready')
+    p2p.emit('ready', options.port)
   })
 
   server.on('error', function (err) {

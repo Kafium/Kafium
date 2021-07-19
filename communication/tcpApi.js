@@ -11,7 +11,7 @@ function serveTCPApi (kafium, port) {
   const p2p = new EventEmitter()
 
   server.on('listening', function () {
-    p2p.emit('ready')
+    p2p.emit('ready', port)
   })
 
   server.on('error', function (err) {
@@ -54,7 +54,7 @@ function serveTCPApi (kafium, port) {
           kafium.addBlock(block).then(block => {
             socket.write('transactionSuccess&&')
           }).catch((error) => {
-            socket.write(`Error/${error}`)
+            socket.write(`Error/${error}&&`)
           })
         }
       })

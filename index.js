@@ -20,8 +20,8 @@ networkingSettings.debug = parseArgv.debug ?? config.debug ?? false
 let P2P = P2PNetwork.serveP2P(kafium, networkingSettings)
 const TCPApi = TCP.serveTCPApi(kafium, parseArgv.tcpApi ?? config.tcpApi ?? 2556)
 
-P2P.on('ready', function () {
-  consoleUtils.log('Connected and served P2P networking.!')
+P2P.on('ready', function (port) {
+  consoleUtils.log(`Connected and served P2P networking on ${port}!`)
 })
 
 P2P.on('end', function () {
@@ -34,12 +34,8 @@ P2P.on('newPeer', function (peer) {
   consoleUtils.log(`Peer connected: ${peer}`)
 })
 
-P2P.on('data', function (data) {
-  consoleUtils.log(`Data received: ${data}`)
-})
-
-TCPApi.on('ready', function () {
-  consoleUtils.log('TCP socket api is ready!')
+TCPApi.on('ready', function (port) {
+  consoleUtils.log(`TCP socket api is ready on ${port}!`)
 })
 
 consoleUtils.prompt.on('line', function (text) {
