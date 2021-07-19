@@ -39,11 +39,6 @@ TCPApi.on('ready', function (port) {
 })
 
 consoleUtils.prompt.on('line', function (text) {
-  if (text.startsWith('sendData')) {
-    const data = text.split(' ')
-    P2P.knownPeers.broadcast(data[1])
-  }
-
   if (text.startsWith('peerList')) {
     const peers = []
     P2P.knownPeers.forEach((key) => { peers.push(key) })
