@@ -32,6 +32,12 @@ function serveP2P (kafium, options) {
             knownPeers.add(data.replace('newPeer/', ''))
             p2p.emit('newPeer', data.replace('newPeer/', ''))
           }
+
+          if (data.toString().startsWith('Block/')) {
+            let block = new bUtils.Block()
+            block.importFromJSON(JSON.parse(data.toString().replace('Block/', '')))
+            kafium.addBlock(block)
+          }
         })
       })
     })
@@ -68,9 +74,15 @@ function serveP2P (kafium, options) {
           const args = data.split('/')[1].split('|')
           if (!args) return socket.write('Error/NeedAPeerName&&')
           socket.write(`newPeer/${options.peerName}|${options.debug ? '127.0.0.1' : publicIp}:${options.port}&&`)
+
           for (const peer of knownPeers) {
             socket.write(`newPeer/${peer}&&`)
           }
+
+          kafium.chain.forEach(block => {
+            socket.write(`Block/${block.toData()}&&`)
+          })
+
           knownPeers.broadcast(data)
           knownPeers.add(data.replace('newPeer/', ''))
           p2p.emit('newPeer', data.replace('newPeer/', ''))
