@@ -5,6 +5,7 @@
 #### To seperate args you can use | for seperating. </br>
 #### Also, every packet must end with && due to nature of TCP they can mixed.
 
-### getWalletData/<WalletAddress>
+## getWalletData/<WalletAddress>
 
-Returns data of given wallet, eg: balance.
+Returns data of given wallet, eg: balance. </br>
+Example sended data: walletData/{balance: 100}
