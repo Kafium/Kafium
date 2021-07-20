@@ -67,10 +67,11 @@ class Block {
 
   isValid () {
     return new Promise((resolve, reject) => {
+      if (this.type === 'TRANSACTION') return reject('NOT_TRANSACTION')
       if (this.fromAddress === null) return resolve(true)
 
       if (!this.data.signature || this.data.signature.length === 0) {
-        reject('No signature in this transaction block')
+        reject('NO_SIGNATURE')
       }
   
       curve.verify(this.data.signature, this.calculateHash(), uint8.hexToUint8(this.data.sender)).then(bool => {
@@ -110,8 +111,8 @@ class Blockchain extends EventEmitter {
                   resolve(block)
                 } else { reject('INVALID_AMOUNT') }
               } else { reject('INSUFFICENT_BALANCE') }
-          }
-        }).catch(err => {reject('NOT_VALID')})
+          } else { reject('NOT_VALID') }
+        }).catch(err => { reject(err) })
       }
     })
   }
