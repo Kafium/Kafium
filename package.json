@@ -10,7 +10,7 @@
         "node": "14.x"
     },
     "dependencies": {
-        "elliptic": "^6.5.4",
+        "noble-ed25519": "^1.2.5",
         "public-ip": "^4.0.4",
         "ramda": "0.27.1"
     }

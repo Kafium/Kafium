@@ -2,7 +2,7 @@ const EventEmitter = require('events').EventEmitter
 const net = require('net')
 
 const socketUtils = require('../utils/socket')
-const bUtils = require('../chainUtils/blockchain')
+const bUtils = require('../chain/blockchain')
 
 const publicIp = require('public-ip')
 

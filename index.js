@@ -6,7 +6,7 @@ const consoleUtils = require('./utils/consoleWrapper')
 const P2PNetwork = require('./p2p')
 const TCP = require('./communication/tcpApi')
 
-const blockchain = require('./chainUtils/blockchain')
+const blockchain = require('./chain/blockchain')
 
 const kafium = new blockchain.Blockchain()
 const config = require('./config.json')

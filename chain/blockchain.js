@@ -1,9 +1,10 @@
 const EventEmitter = require('events').EventEmitter
 const crypto = require('crypto')
 
-const EC = require('elliptic').ec
-const ec = new EC('p224')
+const curve = require('noble-ed25519')
 const R = require('ramda')
+
+const uint8 = require('../utils/uint8')
 
 class Block {
   constructor (previousHash, epochElapsed, type, data) {
@@ -59,32 +60,23 @@ class Block {
     this.data.external = JSONBlock.data.external
   }
 
-  signTransaction (signingKey) {
-    if (!this.type === 'TRANSACTION') throw new Error('Cannot sign transaction, its not a transaction block!')
-    if (signingKey.getPublic('hex') !== this.data.sender) {
-      throw new Error('You cannot sign transactions for other wallets!')
-    }
-
-    const hashTx = this.calculateHash()
-    const sig = signingKey.sign(hashTx, 'base64')
-
-    this.data.signature = sig.toDER('hex')
-  }
-
   signTransactionManually (signature) {
     if (!this.type === 'TRANSACTION') throw new Error('Cannot sign transaction, its not a transaction block!')
     this.data.signature = signature
   }
 
   isValid () {
-    if (this.fromAddress === null) return true
+    return new Promise((resolve, reject) => {
+      if (this.fromAddress === null) return resolve(true)
 
-    if (!this.data.signature || this.data.signature.length === 0) {
-      throw new Error('No signature in this transaction block')
-    }
-
-    const publicKey = ec.keyFromPublic(this.data.sender, 'hex')
-    return publicKey.verify(this.calculateHash(), this.data.signature)
+      if (!this.data.signature || this.data.signature.length === 0) {
+        reject('No signature in this transaction block')
+      }
+  
+      curve.verify(this.data.signature, this.calculateHash(), uint8.hexToUint8(this.data.sender)).then(bool => {
+        resolve(bool)
+      })
+    })
   }
 }
 
@@ -95,7 +87,7 @@ class Blockchain extends EventEmitter {
   }
 
   createGenesisBlock () {
-    return new Block('0', Date.now(), 'TRANSACTION', { sender: 'GENESIS', receiver: '0412d19953e65c67359d79cb37e4b20d4b5e211afe62125e9ffdb331f62ef35002dbb6a7d8d7ca538f480320b090d0f9e7dcbb785d7a24d86c', amount: 100000000 })
+    return new Block('0', Date.now(), 'TRANSACTION', { sender: 'GENESIS', receiver: 'bdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', amount: 100000000 })
   }
 
   getLatestBlock () {
@@ -109,15 +101,17 @@ class Blockchain extends EventEmitter {
   addBlock (block) {
     return new Promise((resolve, reject) => {
       if (block.type === 'TRANSACTION') {
-        if(block.isValid() === true) {
-          if(block.data.amount <= this.getBalanceOfAddress(block.data.sender)) {
-            if(Math.sign(block.data.amount) === 1) {
-              this.chain.push(block)
-              this.emit('newBlock', block)
-              resolve(block)
-            } else { reject('INVALID_AMOUNT') }
-          } else { reject('INSUFFICENT_BALANCE') }
-        } else { reject('NOT_VALID')}
+        block.isValid().then(valid => {
+          if (valid === true) {
+              if(block.data.amount <= this.getBalanceOfAddress(block.data.sender)) {
+                if(Math.sign(block.data.amount) === 1) {
+                  this.chain.push(block)
+                  this.emit('newBlock', block)
+                  resolve(block)
+                } else { reject('INVALID_AMOUNT') }
+              } else { reject('INSUFFICENT_BALANCE') }
+          }
+        }).catch(err => {reject('NOT_VALID')})
       }
     })
   }

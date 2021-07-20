@@ -1,6 +1,6 @@
 const EventEmitter = require('events').EventEmitter
 const net = require('net')
-const bUtils = require('../chainUtils/blockchain')
+const bUtils = require('../chain/blockchain')
 
 module.exports = {
   serveTCPApi
