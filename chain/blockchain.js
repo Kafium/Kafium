@@ -67,8 +67,8 @@ class Block {
 
   isValid () {
     return new Promise((resolve, reject) => {
-      if (this.type === 'TRANSACTION') return reject('NOT_TRANSACTION')
-      if (this.fromAddress === null) return resolve(true)
+      if (!this.type === 'TRANSACTION') return reject('ONLY_TRANSACTION')
+      if (this.data.sender === this.data.receiver) return reject('SELF_SEND_PROHIBITED')
 
       if (!this.data.signature || this.data.signature.length === 0) {
         reject('NO_SIGNATURE')
