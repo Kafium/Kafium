@@ -3,5 +3,6 @@
   "P2P": null,
   "peerName": "MyPeer",
   "port": 2555,
-  "tcpApi": 2556
+  "tcpApiEnabled": true,
+  "tcpApiPort": 2556
 }
