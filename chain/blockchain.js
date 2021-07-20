@@ -20,7 +20,7 @@ class Block {
       this.data.amount = data.amount
     }
 
-    this.data.external = data.external
+    this.data.external = data.external ?? undefined
   }
 
   calculateHash () {
@@ -57,7 +57,7 @@ class Block {
       this.data.signature = JSONBlock.data.signature ?? null
     }
 
-    this.data.external = JSONBlock.data.external
+    this.data.external = JSONBlock.data.external ?? null
   }
 
   signTransactionManually (signature) {
