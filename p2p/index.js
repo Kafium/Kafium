@@ -34,6 +34,7 @@ function serveP2P (kafium, options) {
 
             if (data.toString().startsWith('Block/')) {
               const updatedBlock = bUtils.Block.importFromJSON(JSON.parse(data.toString().replace('Block/', '')))
+              updatedBlock.signTransactionManually(JSON.parse(data.toString().replace('Block/', '')).data.signature)
               kafium.addBlock(updatedBlock)
             }
           })
@@ -94,6 +95,7 @@ function serveP2P (kafium, options) {
                 p2pRequest.write(`requestBlock/${data.split('/')[1]}`)
                 socketUtils.waitForData(p2pRequest, 'requestedBlock').then(data => {
                   const updatedBlock = bUtils.Block.importFromJSON(JSON.parse(data.toString().replace('requestedBlock/', '').replace('&&', '')))
+                  updatedBlock.signTransactionManually(JSON.parse(data.toString().replace('requestedBlock/', '').replace('&&', '')).data.signature)
                   kafium.addBlock(updatedBlock)
                 })
               })
