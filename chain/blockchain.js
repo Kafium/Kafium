@@ -88,7 +88,7 @@ class Blockchain extends EventEmitter {
   }
 
   createGenesisBlock () {
-    return new Block('0', Date.now(), 'TRANSACTION', { sender: 'GENESIS', receiver: 'bdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', amount: 100000000 })
+    return new Block('0', Date.now(), 'TRANSACTION', { sender: 'GENESIS', receiver: 'bdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', amount: 10000000000 })
   }
 
   getLatestBlock () {

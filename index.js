@@ -89,24 +89,6 @@ consoleUtils.prompt.on('line', function (text) {
   consoleUtils.prompt.prompt(true)
 })
 
-consoleUtils.prompt.on('SIGINT', function() {
-  consoleUtils.log('Seems like its closing, creating an auto backup...')
-  const now = Date.now()
-  fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), '[\n', (err) => {
-    if (err) { consoleUtils.log(err) }
-    kafium.chain.forEach((block, index) => {
-      fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), `${kafium.chain.length - 1 === index ? block.toData() : block.toData() + ','}\n`, (err) => {
-        if (err) { consoleUtils.log(err) }
-      })
-    })
-    fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), ']', (err) => {
-      if (err) { consoleUtils.log(err) }
-    })
-    consoleUtils.log(`Created backup! Backup id is ${now}.`)
-    process.exit()
-  })
-})
-
 process.on('uncaughtException', function (err) {
   if (err.stack.includes('read ECONNRESET')) return
   consoleUtils.log(err.stack)

@@ -30,7 +30,7 @@ function serveTCPApi (kafium, port) {
       packet.forEach(data => {
         if (!data) return
         if (data.startsWith('getWalletData/')) { // TCP Api : getWalletData (wallet)
-          socket.write(`walletData/{"balance": ${kafium.getBalanceOfAddress(data.split('/')[1])}}&&`)
+          socket.write(`walletData/${kafium.getBalanceOfAddress(data.split('/')[1])}&&`)
         }
 
         if (data.startsWith('getBlockByHash/')) {
@@ -38,7 +38,7 @@ function serveTCPApi (kafium, port) {
         }
 
         if (data.startsWith('getLastHash')) { // TCP Api : getLastHash
-          socket.write(`lastHash/{"hash": "${kafium.getLatestBlock().hash}"}&&`)
+          socket.write(`lastHash/${kafium.getLatestBlock().hash}&&`)
         }
 
         if (data.startsWith('newTransaction/')) { // TCP Api : newTransaction
