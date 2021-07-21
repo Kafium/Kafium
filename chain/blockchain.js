@@ -43,21 +43,10 @@ class Block {
 }`
   }
 
-  importFromJSON (JSONBlock) {
-    this.previousHash = JSONBlock.previousHash
-    this.epochElapsed = JSONBlock.epochElapsed
-    this.type = JSONBlock.type
-    this.hash = JSONBlock.hash
-    this.data = {}
-
-    if (this.type === 'TRANSACTION') {
-      this.data.sender = JSONBlock.data.sender
-      this.data.receiver = JSONBlock.data.receiver
-      this.data.amount = JSONBlock.data.amount
-      this.data.signature = JSONBlock.data.signature ?? null
-    }
-
-    this.data.external = JSONBlock.data.external ?? null
+  static importFromJSON (JSONBlock) {
+    let block = new Block(JSONBlock.previousHash, JSONBlock.epochElapsed, JSONBlock.type, JSONBlock.data);
+    block.hash = JSONBlock.hash
+    return block
   }
 
   signTransactionManually (signature) {

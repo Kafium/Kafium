@@ -33,9 +33,8 @@ function serveP2P (kafium, options) {
             }
 
             if (data.toString().startsWith('Block/')) {
-              let block = new bUtils.Block('', '', '', '')
-              block.importFromJSON(JSON.parse(data.toString().replace('Block/', '')))
-              kafium.addBlock(block)
+              const updatedBlock = bUtils.Block.importFromJSON(JSON.parse(data.toString().replace('Block/', '')))
+              kafium.addBlock(updatedBlock)
             }
           })
         })
@@ -94,9 +93,8 @@ function serveP2P (kafium, options) {
               p2pRequest.connect(auth.split('|')[1].split(':')[1], auth.split('|')[1].split(':')[0], function () {
                 p2pRequest.write(`requestBlock/${data.split('/')[1]}`)
                 socketUtils.waitForData(p2pRequest, 'requestedBlock').then(data => {
-                  const block = new bUtils.Block('', '', '', '')
-                  block.importFromJSON(JSON.parse(data.toString().replace('requestedBlock/', '').replace('&&', '')))
-                  kafium.addBlock(block)
+                  const updatedBlock = bUtils.Block.importFromJSON(JSON.parse(data.toString().replace('requestedBlock/', '').replace('&&', '')))
+                  kafium.addBlock(updatedBlock)
                 })
               })
             }
