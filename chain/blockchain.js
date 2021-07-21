@@ -23,11 +23,11 @@ class Block {
     this.data.external = data.external ?? undefined
   }
 
-  static calculateHash () {
+  calculateHash () {
     return crypto.createHash('ripemd160').update(this.previousHash + this.epochElapsed + this.type + (this.data?.sender ?? '') + (this.data?.receiver ?? '') + (this.data?.amount ?? '')).digest('hex')
   }
 
-  static toData () {
+  toData () {
     return `{
   "previousHash": "${this.previousHash}",
   "epochElapsed": ${this.epochElapsed},
@@ -43,7 +43,7 @@ class Block {
 }`
   }
 
-  static importFromJSON (JSONBlock) {
+  importFromJSON (JSONBlock) {
     this.previousHash = JSONBlock.previousHash
     this.epochElapsed = JSONBlock.epochElapsed
     this.type = JSONBlock.type
@@ -60,12 +60,12 @@ class Block {
     this.data.external = JSONBlock.data.external ?? null
   }
 
-  static signTransactionManually (signature) {
+  signTransactionManually (signature) {
     if (!this.type === 'TRANSACTION') throw new Error('Cannot sign transaction, its not a transaction block!')
     this.data.signature = signature
   }
 
-  static isValid () {
+  isValid () {
     return new Promise((resolve, reject) => {
       if (!this.type === 'TRANSACTION') return reject('ONLY_TRANSACTION')
       if (this.data.sender === this.data.receiver) return reject('SELF_SEND_PROHIBITED')
@@ -87,19 +87,19 @@ class Blockchain extends EventEmitter {
     this.chain = [ this.createGenesisBlock() ]
   }
 
-  createGenesisBlock () {
+  static createGenesisBlock () {
     return new Block('0', Date.now(), 'TRANSACTION', { sender: 'GENESIS', receiver: 'bdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', amount: 10000000000 })
   }
 
-  static getLatestBlock () {
+  getLatestBlock () {
     return this.chain[this.chain.length - 1]
   }
 
-  static getBlockByHash (hash) {
+  getBlockByHash (hash) {
     return R.find(R.propEq('hash', hash), this.chain)
   }
 
-  static addBlock (block) {
+  addBlock (block) {
     return new Promise((resolve, reject) => {
       if (block.type === 'TRANSACTION') {
         block.isValid().then(valid => {
@@ -117,7 +117,7 @@ class Blockchain extends EventEmitter {
     })
   }
 
-  static getBalanceOfAddress (address) {
+  getBalanceOfAddress (address) {
     let balance = 0
 
     for (const block of this.chain) {
@@ -134,7 +134,7 @@ class Blockchain extends EventEmitter {
     return balance
   }
 
-  static isChainValid () { // TODO: Fix this.
+  isChainValid () { // TODO: Fix this.
     const realGenesis = JSON.stringify(this.createGenesisBlock())
 
     if (realGenesis !== JSON.stringify(this.chain[0])) {
