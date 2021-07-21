@@ -33,12 +33,12 @@ P2P.on('newPeer', function (peer) {
   consoleUtils.log(`Peer connected: ${peer}`)
 })
 
-if (config.tcpApiEnabled) { 
-  let TCPApi = TCP.serveTCPApi(kafium, parseArgv.tcpApi ?? config.tcpApiPort ?? 2556)
+if (config.tcpApiEnabled) {
+  const TCPApi = TCP.serveTCPApi(kafium, parseArgv.tcpApi ?? config.tcpApiPort ?? 2556)
 
   TCPApi.on('ready', function (port) {
     consoleUtils.log(`TCP socket api is ready on ${port}!`)
-  })  
+  })
 }
 
 consoleUtils.prompt.on('line', function (text) {
@@ -61,12 +61,12 @@ consoleUtils.prompt.on('line', function (text) {
       kafium.chain.forEach((block, index) => {
         fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), `${kafium.chain.length - 1 === index ? block.toData() : block.toData() + ','}\n`, (err) => {
           if (err) { consoleUtils.log(err) }
+          fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), ']', (err) => {
+            if (err) { consoleUtils.log(err) }
+            consoleUtils.log(`Created backup! Backup id is ${now}.`)
+          })
         })
       })
-      fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), ']', (err) => {
-        if (err) { consoleUtils.log(err) }
-      })
-      consoleUtils.log(`Created backup! Backup id is ${now}.`)
     })
   }
 

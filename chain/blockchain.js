@@ -44,7 +44,7 @@ class Block {
   }
 
   static importFromJSON (JSONBlock) {
-    let block = new Block(JSONBlock.previousHash, JSONBlock.epochElapsed, JSONBlock.type, JSONBlock.data);
+    const block = new Block(JSONBlock.previousHash, JSONBlock.epochElapsed, JSONBlock.type, JSONBlock.data)
     block.hash = JSONBlock.hash
     return block
   }
@@ -62,7 +62,7 @@ class Block {
       if (!this.data.signature || this.data.signature.length === 0) {
         reject('NO_SIGNATURE')
       }
-  
+
       curve.verify(this.data.signature, this.calculateHash(), uint8.hexToUint8(this.data.sender)).then(bool => {
         resolve(bool)
       })
@@ -73,7 +73,7 @@ class Block {
 class Blockchain extends EventEmitter {
   constructor () {
     super()
-    this.chain = [ this.createGenesisBlock() ]
+    this.chain = [this.createGenesisBlock()]
   }
 
   createGenesisBlock () {
@@ -93,13 +93,13 @@ class Blockchain extends EventEmitter {
       if (block.type === 'TRANSACTION') {
         block.isValid().then(valid => {
           if (valid === true) {
-              if(block.data.amount <= this.getBalanceOfAddress(block.data.sender)) {
-                if(Math.sign(block.data.amount) === 1) {
-                  this.chain.push(block)
-                  this.emit('newBlock', block)
-                  resolve(block)
-                } else { reject('INVALID_AMOUNT') }
-              } else { reject('INSUFFICENT_BALANCE') }
+            if (block.data.amount <= this.getBalanceOfAddress(block.data.sender)) {
+              if (Math.sign(block.data.amount) === 1) {
+                this.chain.push(block)
+                this.emit('newBlock', block)
+                resolve(block)
+              } else { reject('INVALID_AMOUNT') }
+            } else { reject('INSUFFICENT_BALANCE') }
           } else { reject('NOT_VALID') }
         }).catch(err => { reject(err) })
       }

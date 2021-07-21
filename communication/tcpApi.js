@@ -43,11 +43,11 @@ function serveTCPApi (kafium, port) {
 
         if (data.startsWith('newTransaction/')) { // TCP Api : newTransaction
           const args = data.replace('newTransaction/', '').split('|')
-          const sender = args[0],
-                receiver = args[1],
-                amount = args[2],
-                signature = args[3],
-                createdAt = args[4]
+          const sender = args[0]
+          const receiver = args[1]
+          const amount = args[2]
+          const signature = args[3]
+          const createdAt = args[4]
 
           const block = new bUtils.Block(kafium.getLatestBlock().hash, parseInt(createdAt), 'TRANSACTION', { sender: sender, receiver: receiver, amount: parseInt(amount) })
           block.signTransactionManually(signature)

@@ -1,18 +1,18 @@
-function waitForData(socket, waitingData) {
+function waitForData (socket, waitingData) {
   return new Promise((resolve, reject) => {
-      socket.on('data', listener)
+    socket.on('data', listener)
 
-      function listener(data) {
-          if(data.toString().includes(waitingData)) {
-              resolve(data)
-              socket.removeListener('data', listener)
-          }
+    function listener (data) {
+      if (data.toString().includes(waitingData)) {
+        resolve(data)
+        socket.removeListener('data', listener)
       }
-      
-      wait(5000).then(() => {
-          reject('TIMEOUT')
-          socket.removeListener('data', listener)
-      })
+    }
+
+    wait(5000).then(() => {
+      reject('TIMEOUT')
+      socket.removeListener('data', listener)
+    })
   })
 }
 

@@ -89,7 +89,7 @@ function serveP2P (kafium, options) {
           }
 
           if (data.startsWith('updatedBlockchainSize/')) {
-            if(parseInt(data.split('/')[1]) > kafium.chain.length) {
+            if (parseInt(data.split('/')[1]) > kafium.chain.length) {
               const p2pRequest = new net.Socket()
               p2pRequest.connect(auth.split('|')[1].split(':')[1], auth.split('|')[1].split(':')[0], function () {
                 p2pRequest.write(`requestBlock/${data.split('/')[1]}`)
@@ -109,16 +109,17 @@ function serveP2P (kafium, options) {
       })
     })
 
-    kafium.on('newBlock', function(block) {
+    kafium.on('newBlock', function (block) {
       knownPeers.broadcast(`updatedBlockchainSize/${kafium.chain.length}&&`)
     })
 
     knownPeers.broadcast = function (data) {
-      this.forEach(function(peer) {
+      this.forEach(function (peer) {
         const p2pIpAddress = peer.split('|')[1]
         const p2pClient = new net.Socket()
         p2pClient.connect(p2pIpAddress.split(':')[1], p2pIpAddress.split(':')[0], function () {
           p2pClient.write(`declareMe/${options.peerName}|${options.debug ? '127.0.0.1' : publicIp}:${options.port}&&`, (err) => {
+            if (err) throw err
             p2pClient.write(`${data}&&`, (err) => {
               if (err) throw err
               p2pClient.end()
@@ -127,7 +128,7 @@ function serveP2P (kafium, options) {
         })
       })
     }
-    
+
     p2p.end = function () {
       server.close()
       server.removeAllListeners()
