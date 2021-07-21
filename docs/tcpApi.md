@@ -1,21 +1,21 @@
 # Packets
 
 ````
-Packets are seperated to 2 thing, packet name and args. </br>
-Example: PacketName > getWalletData/WOWAKAFIWALLET < Args</br>
-To seperate args you can use | for seperating. </br>
+Packets are seperated to 2 thing, packet name and args.
+Example: PacketName > getWalletData/WOWAKAFIWALLET < Args
+To seperate args you can use | for seperating.
 Also, every packet must end with && due to nature of TCP they can mixed.
 ````
 
 ## getWalletData/WalletAddress
 
 Returns data of given wallet, eg: balance. </br>
-Example sended data: ``walletData/{balance: 100}&&``
+Example sended data: ``walletData/100&&``
 
 ## getLastHash
 
 Returns last hash of blockchain. </br>
-Example sended data: ``lastHash/{hash: WQEQWEQWEQWEQWE}&&``
+Example sended data: ``lastHash/WQEQWEQWEQWEQWE&&``
 
 ## getBlockByHash/Hash
 
