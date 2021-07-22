@@ -60,11 +60,12 @@ consoleUtils.prompt.on('line', function (text) {
 
   if (text.startsWith('loadBackup')) {
     consoleUtils.log('Loading backup...')
-    const blocks = fs.readFileSync(`backups/${text.split(' ')[1]}.kafium`, 'utf8')
-    const blockchain = blocks.split('&&')
-    blockchain.forEach((block, index, array) => {
-      const updatedBlock = blockchain.Block.importFromJSON(block)
-      blocks[index] = updatedBlock
+    let blocks = [kafium.createGenesisBlock()]
+    const bc = fs.readFileSync(`backups/${text.split(' ')[1]}.kafium`, 'utf8').split('&&')
+    bc.forEach((block, index, array) => {
+      if(!block) return
+      const updatedBlock = blockchain.Block.importFromJSON(JSON.parse(block))
+      blocks[index + 1] = updatedBlock
     })
     kafium.chain = blocks
     consoleUtils.log('Loaded backup succesfully.')
