@@ -138,10 +138,6 @@ class Blockchain extends EventEmitter {
         return false
       }
 
-      if (!currentBlock.hasValidTransactions()) {
-        return false
-      }
-
       if (currentBlock.hash !== currentBlock.calculateHash()) {
         return false
       }

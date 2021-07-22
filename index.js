@@ -1,16 +1,17 @@
 const path = require('path')
 const fs = require('fs')
 
+const bcSaver = fs.createWriteStream(`backups/${Date.now()}.kafium`)
+
 const parseArgv = require('./utils/argParser')(process.argv)
 const consoleUtils = require('./utils/consoleWrapper')
 const P2PNetwork = require('./p2p')
 const TCP = require('./communication/tcpApi')
 
 const blockchain = require('./chain/blockchain')
-
 const kafium = new blockchain.Blockchain()
-const config = require('./config.json')
 
+const config = require('./config.json')
 const networkingSettings = {}
 networkingSettings.port = parseArgv.port ?? config.port ?? 2555
 networkingSettings.peerName = parseArgv.peerName ?? config.peerName ?? 'Defaultpeer'
@@ -33,13 +34,17 @@ P2P.on('newPeer', function (peer) {
   consoleUtils.log(`Peer connected: ${peer}`)
 })
 
-if (config.tcpApiEnabled) {
-  const TCPApi = TCP.serveTCPApi(kafium, parseArgv.tcpApi ?? config.tcpApiPort ?? 2556)
+if (parseArgv.enableTCPApi || config.tcpApi.enabled) {
+  const TCPApi = TCP.serveTCPApi(kafium, parseArgv.tcpApi ?? config.tcpApi.apiPort ?? 2556)
 
   TCPApi.on('ready', function (port) {
     consoleUtils.log(`TCP socket api is ready on ${port}!`)
   })
 }
+
+kafium.on('newBlock', async function(block) {
+  bcSaver.write(`${block.toData()}&&`)
+})
 
 consoleUtils.prompt.on('line', function (text) {
   if (text.startsWith('peerList')) {
@@ -53,27 +58,11 @@ consoleUtils.prompt.on('line', function (text) {
     consoleUtils.log(`Total blocks: ${kafium.chain.length}`)
   }
 
-  if (text.startsWith('createBackup')) {
-    consoleUtils.log('Exporting blockchains copy to backups/ file.')
-    const now = Date.now()
-    fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), '[\n', (err) => {
-      if (err) { consoleUtils.log(err) }
-      kafium.chain.forEach((block, index) => {
-        fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), `${kafium.chain.length - 1 === index ? block.toData() : block.toData() + ','}\n`, (err) => {
-          if (err) { consoleUtils.log(err) }
-          fs.appendFile(path.resolve(__dirname, `./backups/backup-${now}.kafium`), ']', (err) => {
-            if (err) { consoleUtils.log(err) }
-            consoleUtils.log(`Created backup! Backup id is ${now}.`)
-          })
-        })
-      })
-    })
-  }
-
   if (text.startsWith('loadBackup')) {
     consoleUtils.log('Loading backup...')
-    const blocks = JSON.parse(fs.readFileSync(`backups/backup-${text.split(' ')[1]}.kafium`, 'utf8'))
-    blocks.forEach((block, index, array) => {
+    const blocks = fs.readFileSync(`backups/${text.split(' ')[1]}.kafium`, 'utf8')
+    const blockchain = blocks.split('&&')
+    blockchain.forEach((block, index, array) => {
       const updatedBlock = blockchain.Block.importFromJSON(block)
       blocks[index] = updatedBlock
     })
