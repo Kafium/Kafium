@@ -1,6 +1,6 @@
 const EventEmitter = require('events').EventEmitter
 const net = require('net')
-const bUtils = require('../chain/blockchain')
+const bUtils = require('../blockchain')
 
 module.exports = {
   serveTCPApi
@@ -33,6 +33,10 @@ function serveTCPApi (kafium, port) {
           socket.write(`walletData/${kafium.getBalanceOfAddress(data.split('/')[1])}&&`)
         }
 
+        if (data.startsWith('getBlocksCount')) {
+          socket.write(`blocksCount/${kafium.getTotalBlocks()}`)
+        }
+
         if (data.startsWith('getBlockByHash/')) {
           socket.write(`Block/${kafium.getBlockByHash(data.split('/')[1]).toData()}&&`)
         }
@@ -49,7 +53,7 @@ function serveTCPApi (kafium, port) {
           const signature = args[3]
           const createdAt = args[4]
 
-          const block = new bUtils.Block(kafium.getLatestBlock().hash, parseInt(createdAt), 'TRANSACTION', { sender: sender, receiver: receiver, amount: parseInt(amount) })
+          const block = new bUtils.Block(parseInt(createdAt), kafium.getLatestBlock().hash, sender, receiver, parseInt(amount))
           block.signTransactionManually(signature)
           kafium.addBlock(block).then(block => {
             socket.write('transactionSuccess&&')

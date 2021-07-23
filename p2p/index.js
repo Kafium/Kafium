@@ -2,7 +2,7 @@ const EventEmitter = require('events').EventEmitter
 const net = require('net')
 
 const socketUtils = require('../utils/socket')
-const bUtils = require('../chain/blockchain')
+const bUtils = require('../blockchain')
 
 const publicIp = require('public-ip')
 
@@ -110,7 +110,7 @@ function serveP2P (kafium, options) {
     })
 
     kafium.on('newBlock', function (block) {
-      knownPeers.broadcast(`updatedBlockchainSize/${kafium.chain.length}&&`)
+      knownPeers.broadcast(`updatedBlockchainSize/${kafium.getTotalBlocks()}&&`)
     })
 
     knownPeers.broadcast = function (data) {

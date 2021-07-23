@@ -1,8 +1,3 @@
-const path = require('path')
-const fs = require('fs')
-
-const bcSaver = fs.createWriteStream(`backups/${Date.now()}.kafium`)
-
 const parseArgv = require('./utils/argParser')(process.argv)
 const consoleUtils = require('./utils/consoleWrapper')
 const P2PNetwork = require('./p2p')
@@ -42,10 +37,6 @@ if (parseArgv.enableTCPApi || config.tcpApi.enabled) {
   })
 }
 
-kafium.on('newBlock', async function(block) {
-  bcSaver.write(`${block.toData()}&&`)
-})
-
 consoleUtils.prompt.on('line', function (text) {
   if (text.startsWith('peerList')) {
     const peers = []
@@ -55,24 +46,7 @@ consoleUtils.prompt.on('line', function (text) {
   }
 
   if (text.startsWith('blocks')) {
-    consoleUtils.log(`Total blocks: ${kafium.chain.length}`)
-  }
-
-  if (text.startsWith('loadBackup')) {
-    consoleUtils.log('Loading backup...')
-    let blocks = [kafium.createGenesisBlock()]
-    const bc = fs.readFileSync(`backups/${text.split(' ')[1]}.kafium`, 'utf8').split('&&')
-    bc.forEach((block, index, array) => {
-      if(!block) return
-      const updatedBlock = blockchain.Block.importFromJSON(JSON.parse(block))
-      blocks[index + 1] = updatedBlock
-    })
-    kafium.chain = blocks
-    consoleUtils.log('Loaded backup succesfully.')
-  }
-
-  if (text.startsWith('debug')) {
-    console.log(kafium.chain)
+    consoleUtils.log(`Total blocks: ${kafium.getTotalBlocks()}`)
   }
 
   consoleUtils.prompt.prompt(true)
