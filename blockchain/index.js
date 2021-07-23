@@ -53,6 +53,7 @@ class Block {
     return new Promise((resolve, reject) => {
       if (!this.sender.startsWith('K#') || !this.receiver.startsWith('K#')) return reject('INVALID_WALLET')
       if (this.sender === this.receiver) return reject('SELF_SEND_PROHIBITED')
+      if (this.external) { if(this.external.length > 8) return reject('INVALID_EXTERNAL') }
 
       if (!this.signature || this.signature.length === 0) {
         reject('NO_SIGNATURE')
