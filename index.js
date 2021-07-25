@@ -1,7 +1,8 @@
 const parseArgv = require('./utils/argParser')(process.argv)
 const consoleUtils = require('./utils/consoleWrapper')
 const P2PNetwork = require('./p2p')
-const TCP = require('./communication/tcpApi')
+const TCP = require('./communication/TCP')
+const WS = require('./communication/WS')
 
 const blockchain = require('./chain/blockchain')
 const kafium = new blockchain.Blockchain()
@@ -36,6 +37,15 @@ if (parseArgv.enableTCPApi || config.tcpApi.enabled) {
     consoleUtils.log(`TCP socket api is ready on ${port}!`)
   })
 }
+
+if (parseArgv.enableWSApi || config.wsApi.enabled) {
+  const WSApi = WS.serveWSApi(kafium, parseArgv.WSApi ?? config.tcpApi.apiPort ?? 2557)
+
+  WSApi.on('ready', function (port) {
+    consoleUtils.log(`Websocket api is ready on ${port}!`)
+  })
+}
+
 
 consoleUtils.prompt.on('line', function (text) {
   if (text.startsWith('peerList')) {

@@ -45,8 +45,8 @@ function serveTCPApi (kafium, port) {
           socket.write(`lastHash/${kafium.getLatestBlock().hash}&&`)
         }
 
-        if (data.startsWith('newTransaction/')) { // TCP Api : newTransaction
-          const args = data.replace('newTransaction/', '').split('|')
+        if (data.startsWith('newRawTransaction/')) { // TCP Api : newTransaction
+          const args = data.replace('newRawTransaction/', '').split('|')
           const sender = args[0]
           const receiver = args[1]
           const amount = args[2]
@@ -56,7 +56,7 @@ function serveTCPApi (kafium, port) {
           const block = new bUtils.Block(parseInt(createdAt), kafium.getLatestBlock().hash, sender, receiver, parseInt(amount))
           block.signTransactionManually(signature)
           kafium.addBlock(block).then(block => {
-            socket.write('transactionSuccess&&')
+            socket.write('rawTransactionSuccess&&')
           }).catch((error) => {
             socket.write(`Error/${error}&&`)
           })
