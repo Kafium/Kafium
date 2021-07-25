@@ -20,10 +20,10 @@ function serveWSApi (kafium, port) {
     wssEmitter.emit('ready', port)
   })
 
-  wss.on('connection', function (ws) {
+  wss.on('connection', function (ws, req) {
     ws.on('message', async function (data) {
       try {
-        await rateLimiter.consume(socket.handshake.address)
+        await rateLimiter.consume(req.socket.remoteAddress)
         if (data.startsWith('getBlockByHash/')) {
           ws.send(`Block/${kafium.getBlockByHash(data.split('/')[1]).toData()}`)
         }
