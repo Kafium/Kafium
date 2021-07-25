@@ -29,8 +29,19 @@ function serveTCPApi (kafium, port) {
       const packet = data.toString().split('&&')
       packet.forEach(data => {
         if (!data) return
-        if (data.startsWith('getWalletData/')) { // TCP Api : getWalletData (wallet)
-          socket.write(`walletData/${kafium.getBalanceOfAddress(data.split('/')[1])}&&`)
+        if (data.startsWith('getWalletBalance/')) {
+          if(!data.split('/')[1]) return socket.write('Error/MISSING_ARGS&&')
+          socket.write(`walletBalance/${kafium.getBalanceOfAddress(data.split('/')[1])}&&`)
+        }
+
+        if (data.startsWith('getWalletBlocks/')) {
+          const args = data.split('/')[1].split('|')
+          const wallet = args[0]
+          const howMuchBlocks = args[1]
+
+          if(!wallet || !howMuchBlocks) return socket.write('Error/MISSING_ARGS&&')
+          const sql = kafium.sql.prepare(`SELECT * FROM blockchain WHERE receiver = ${wallet} OR sender = ${wallet} LIMIT ${howMuchBlocks};`)
+          socket.write(`walletBlocks/${sql.all()}&&`)
         }
 
         if (data.startsWith('getBlocksCount')) {
@@ -38,6 +49,7 @@ function serveTCPApi (kafium, port) {
         }
 
         if (data.startsWith('getBlockByHash/')) {
+          if(!data.split('/')[1]) return socket.write('Error/MISSING_ARGS&&')
           socket.write(`Block/${kafium.getBlockByHash(data.split('/')[1]).toData()}&&`)
         }
 
