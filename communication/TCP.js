@@ -40,8 +40,14 @@ function serveTCPApi (kafium, port) {
           const howMuchBlocks = args[1]
 
           if(!wallet || !howMuchBlocks) return socket.write('Error/MISSING_ARGS&&')
-          const sql = kafium.sql.prepare(`SELECT * FROM blockchain WHERE receiver = ${wallet} OR sender = ${wallet} LIMIT ${howMuchBlocks};`)
-          socket.write(`walletBlocks/${sql.all()}&&`)
+
+          const sql = kafium.sql.prepare(`SELECT * FROM blockchain WHERE receiver = ? OR sender = ? LIMIT ?;`).all(wallet, wallet, howMuchBlocks)
+          let toSend = ''
+          sql.forEach((thing, index, array) => {
+            toSend += JSON.stringify(thing) + (index === sql.length - 1 ? '' : '|')
+          })
+
+          socket.write(`walletBlocks/${toSend}&&`)
         }
 
         if (data.startsWith('getBlocksCount')) {
