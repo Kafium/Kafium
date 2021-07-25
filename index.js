@@ -4,7 +4,7 @@ const P2PNetwork = require('./p2p')
 const TCP = require('./communication/TCP')
 const WS = require('./communication/WS')
 
-const blockchain = require('./chain/blockchain')
+const blockchain = require('./blockchain')
 const kafium = new blockchain.Blockchain()
 
 const config = require('./config.json')
@@ -18,6 +18,22 @@ let P2P = P2PNetwork.serveP2P(kafium, networkingSettings)
 
 P2P.on('ready', function (port) {
   consoleUtils.log(`Connected and served P2P networking on ${port}!`)
+
+  if (parseArgv.enableTCPApi || config.tcpApi.enabled) {
+    const TCPApi = TCP.serveTCPApi(kafium, parseArgv.tcpApi ?? config.tcpApi.apiPort ?? 2556)
+  
+    TCPApi.on('ready', function (port) {
+      consoleUtils.log(`TCP socket api is ready on ${port}!`)
+    })
+  }
+  
+  if (parseArgv.enableWSApi || config.wsApi.enabled) {
+    const WSApi = WS.serveWSApi(kafium, parseArgv.WSApi ?? config.wsApi.apiPort ?? 2557)
+  
+    WSApi.on('ready', function (port) {
+      consoleUtils.log(`Websocket api is ready on ${port}!`)
+    })
+  }
 })
 
 P2P.on('end', function () {
@@ -29,23 +45,6 @@ P2P.on('end', function () {
 P2P.on('newPeer', function (peer) {
   consoleUtils.log(`Peer connected: ${peer}`)
 })
-
-if (parseArgv.enableTCPApi || config.tcpApi.enabled) {
-  const TCPApi = TCP.serveTCPApi(kafium, parseArgv.tcpApi ?? config.tcpApi.apiPort ?? 2556)
-
-  TCPApi.on('ready', function (port) {
-    consoleUtils.log(`TCP socket api is ready on ${port}!`)
-  })
-}
-
-if (parseArgv.enableWSApi || config.wsApi.enabled) {
-  const WSApi = WS.serveWSApi(kafium, parseArgv.WSApi ?? config.tcpApi.apiPort ?? 2557)
-
-  WSApi.on('ready', function (port) {
-    consoleUtils.log(`Websocket api is ready on ${port}!`)
-  })
-}
-
 
 consoleUtils.prompt.on('line', function (text) {
   if (text.startsWith('peerList')) {
