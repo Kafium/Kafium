@@ -56,7 +56,7 @@ function serveTCPApi (kafium, port) {
 
         if (data.startsWith('getBlockByHash/')) {
           if(!data.split('/')[1]) return socket.write('Error/MISSING_ARGS&&')
-          socket.write(`Block/${kafium.getBlockByHash(data.split('/')[1]).toData()}&&`)
+          socket.write(`Block/${JSON.stringify(kafium.getBlockByHash(data.split('/')[1]))}&&`)
         }
 
         if (data.startsWith('getLastHash')) { // TCP Api : getLastHash
