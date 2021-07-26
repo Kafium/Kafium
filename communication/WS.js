@@ -40,7 +40,6 @@ function serveWSApi (kafium, port) {
           ws.send(`lastHash/${kafium.getLatestBlock().hash}`)
         }
       } catch (err) {
-        ws.send(`RATE_LIMIT`)
       }
     })
   })
