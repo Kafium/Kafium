@@ -78,9 +78,9 @@ function serveP2P (kafium, options) {
               socket.write(`newPeer/${peer}&&`)
             }
 
-            kafium.chain.forEach((block, index, array) => {
+            kafium.sql.prepare('SELECT * FROM blockchain;').all().forEach((block, index, array) => {
               if (index === 0) return
-              socket.write(`Block/${block.toData()}&&`)
+              socket.write(`Block/${JSON.stringify(block)}&&`)
             })
 
             knownPeers.broadcast(data)
@@ -103,7 +103,8 @@ function serveP2P (kafium, options) {
           }
 
           if (data.startsWith('requestBlock/')) {
-            socket.write(`requestedBlock/${kafium.chain[parseInt(data.split('/')[1]) - 1].toData()}&&`)
+            const block = kafium.sql.prepare('SELECT * FROM blockchain WHERE rowid = ?;').get(parseInt(data.split('/')[1]))
+            socket.write(`requestedBlock/${JSON.stringify(block)}&&`)
           }
         })
       })
