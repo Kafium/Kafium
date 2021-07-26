@@ -25,11 +25,29 @@ function serveWSApi (kafium, port) {
       try {
         await rateLimiter.consume(req.socket.remoteAddress)
         if (data.startsWith('getBlockByHash/')) {
-          ws.send(`Block/${kafium.getBlockByHash(data.split('/')[1]).toData()}`)
+          if (!data.split('/')[1]) return socket.write('Error/MISSING_ARGS')
+          ws.send(`Block/${JSON.stringify(kafium.getBlockByHash(data.split('/')[1]))}`)
         }
 
         if (data.startsWith('getWalletBalance/')) {
+          if (!data.split('/')[1]) return socket.write('Error/MISSING_ARGS')
           ws.send(`walletBalance/${kafium.getBalanceOfAddress(data.split('/')[1])}`)
+        }
+
+        if (data.startsWith('getWalletBlocks/')) {
+          const args = data.split('/')[1].split('|')
+          const wallet = args[0]
+          const howMuchBlocks = args[1]
+
+          if (!wallet || !howMuchBlocks) return socket.write('Error/MISSING_ARGS&&')
+
+          const sql = kafium.sql.prepare('SELECT * FROM blockchain WHERE receiver = ? OR sender = ? LIMIT ?;').all(wallet, wallet, howMuchBlocks)
+          let toSend = ''
+          sql.forEach((thing, index, array) => {
+            toSend += JSON.stringify(thing) + (index === sql.length - 1 ? '' : '|')
+          })
+
+          ws.send(`walletBlocks/${toSend}`)
         }
 
         if (data.startsWith('getBlocksCount')) {
