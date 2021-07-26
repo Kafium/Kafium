@@ -3,7 +3,7 @@ const crypto = require('crypto')
 
 const curve = require('noble-ed25519')
 
-const SQLite = require("better-sqlite3");
+const SQLite = require('better-sqlite3')
 
 const uint8 = require('../utils/uint8')
 
@@ -53,7 +53,7 @@ class Block {
     return new Promise((resolve, reject) => {
       if (!this.sender.startsWith('K#') || !this.receiver.startsWith('K#')) return reject('INVALID_WALLET')
       if (this.sender === this.receiver) return reject('SELF_SEND_PROHIBITED')
-      if (this.external) { if(this.external.length > 8) return reject('INVALID_EXTERNAL') }
+      if (this.external) { if (this.external.length > 8) return reject('INVALID_EXTERNAL') }
 
       if (!this.signature || this.signature.length === 0) {
         reject('NO_SIGNATURE')
@@ -71,19 +71,19 @@ class Blockchain extends EventEmitter {
     super()
 
     this.sql = new SQLite('./data/blockchain.sqlite')
-    const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = 'blockchain';").get();
+    const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = 'blockchain';").get()
     if (!table['count(*)']) {
-      this.sql.prepare("CREATE TABLE blockchain (hash TEXT, epochElapsed INTEGER, previousHash TEXT, sender TEXT, receiver TEXT, amount FLOAT, signature TEXT, external TEXT);").run();
-      this.sql.prepare("CREATE UNIQUE INDEX block_hash ON blockchain (hash);").run()
-      this.sql.pragma("synchronous = 1")
+      this.sql.prepare('CREATE TABLE blockchain (hash TEXT, epochElapsed INTEGER, previousHash TEXT, sender TEXT, receiver TEXT, amount FLOAT, signature TEXT, external TEXT);').run()
+      this.sql.prepare('CREATE UNIQUE INDEX block_hash ON blockchain (hash);').run()
+      this.sql.pragma('synchronous = 1')
 
-      this.sql.prepare("INSERT INTO blockchain (hash, epochElapsed, previousHash, sender, receiver, amount, signature, external) VALUES (@hash, @epochElapsed, @previousHash, @sender, @receiver, @amount, @signature, @external);").run(this.createGenesisBlock().toSqlData())
+      this.sql.prepare('INSERT INTO blockchain (hash, epochElapsed, previousHash, sender, receiver, amount, signature, external) VALUES (@hash, @epochElapsed, @previousHash, @sender, @receiver, @amount, @signature, @external);').run(this.createGenesisBlock().toSqlData())
     }
   }
 
   getTotalBlocks () {
-    const res = this.sql.prepare(`SELECT count(*) FROM 'blockchain';`).get()
-    return res["count(*)"]
+    const res = this.sql.prepare('SELECT count(*) FROM \'blockchain\';').get()
+    return res['count(*)']
   }
 
   createGenesisBlock () {
@@ -91,40 +91,40 @@ class Blockchain extends EventEmitter {
   }
 
   getLatestBlock () {
-    return this.sql.prepare("SELECT * FROM blockchain ORDER BY hash DESC LIMIT 1;").get()
+    return this.sql.prepare('SELECT * FROM blockchain ORDER BY hash DESC LIMIT 1;').get()
   }
 
   getBlockByHash (hash) {
-    return this.sql.prepare("SELECT * FROM blockchain WHERE hash = ?").get(hash)
+    return this.sql.prepare('SELECT * FROM blockchain WHERE hash = ?').get(hash)
   }
 
   addBlock (block) {
     return new Promise((resolve, reject) => {
-        block.isValid().then(valid => {
-          if (valid === true) {
-            if (block.amount <= this.getBalanceOfAddress(block.sender)) {
-              if (Math.sign(block.amount) === 1) {
-                this.sql.prepare("INSERT INTO blockchain (hash, epochElapsed, previousHash, sender, receiver, amount, signature, external) VALUES (@hash, @epochElapsed, @previousHash, @sender, @receiver, @amount, @signature, @external);").run(block.toSqlData())
-                this.emit('newBlock', block)
-                resolve(block)
-              } else { reject('INVALID_AMOUNT') }
-            } else { reject('INSUFFICENT_BALANCE') }
-          } else { reject('NOT_VALID') }
-        }).catch(err => { reject(err) })
+      block.isValid().then(valid => {
+        if (valid === true) {
+          if (block.amount <= this.getBalanceOfAddress(block.sender)) {
+            if (Math.sign(block.amount) === 1) {
+              this.sql.prepare('INSERT INTO blockchain (hash, epochElapsed, previousHash, sender, receiver, amount, signature, external) VALUES (@hash, @epochElapsed, @previousHash, @sender, @receiver, @amount, @signature, @external);').run(block.toSqlData())
+              this.emit('newBlock', block)
+              resolve(block)
+            } else { reject('INVALID_AMOUNT') }
+          } else { reject('INSUFFICENT_BALANCE') }
+        } else { reject('NOT_VALID') }
+      }).catch(err => { reject(err) })
     })
   }
 
   getBalanceOfAddress (address) {
     let balance = 0
 
-    const blocksInteracted = this.sql.prepare("SELECT * FROM blockchain WHERE receiver = ? OR sender = ?").all(address, address)
+    const blocksInteracted = this.sql.prepare('SELECT * FROM blockchain WHERE receiver = ? OR sender = ?').all(address, address)
 
     blocksInteracted.forEach(block => {
-      if(block.receiver === address) {
+      if (block.receiver === address) {
         balance += block.amount
       }
 
-      if(block.sender === address) {
+      if (block.sender === address) {
         balance -= block.amount
       }
     })

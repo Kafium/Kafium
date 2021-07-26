@@ -9,13 +9,13 @@ module.exports = {
 
 function serveWSApi (kafium, port) {
   const wss = new WebSocket.Server({ port: port })
-  const wssEmitter = new EventEmitter
+  const wssEmitter = new EventEmitter()
 
   const rateLimiter = new RateLimiterMemory({
     points: 5,
-    duration: 2,
+    duration: 2
   })
-  
+
   wss.on('listening', function () {
     wssEmitter.emit('ready', port)
   })
@@ -43,6 +43,6 @@ function serveWSApi (kafium, port) {
       }
     })
   })
-  
+
   return wssEmitter
 }

@@ -15,7 +15,7 @@ function serveTCPApi (kafium, port) {
 
   const rateLimiter = new RateLimiterMemory({
     points: 5,
-    duration: 2,
+    duration: 2
   })
 
   server.on('listening', function () {
@@ -33,14 +33,14 @@ function serveTCPApi (kafium, port) {
 
   server.on('connection', function (socket) {
     p2p.emit('apiConnect', socket)
-    socket.on('data', async function (data) {
+    socket.on('data', function (data) {
       const packet = data.toString().split('&&')
-      packet.forEach(data => {
+      packet.forEach(async function (data) {
         if (!data) return
         try {
           await rateLimiter.consume(socket.remoteAddress)
           if (data.startsWith('getWalletBalance/')) {
-            if(!data.split('/')[1]) return socket.write('Error/MISSING_ARGS&&')
+            if (!data.split('/')[1]) return socket.write('Error/MISSING_ARGS&&')
             socket.write(`walletBalance/${kafium.getBalanceOfAddress(data.split('/')[1])}&&`)
           }
 
@@ -49,9 +49,9 @@ function serveTCPApi (kafium, port) {
             const wallet = args[0]
             const howMuchBlocks = args[1]
 
-            if(!wallet || !howMuchBlocks) return socket.write('Error/MISSING_ARGS&&')
+            if (!wallet || !howMuchBlocks) return socket.write('Error/MISSING_ARGS&&')
 
-            const sql = kafium.sql.prepare(`SELECT * FROM blockchain WHERE receiver = ? OR sender = ? LIMIT ?;`).all(wallet, wallet, howMuchBlocks)
+            const sql = kafium.sql.prepare('SELECT * FROM blockchain WHERE receiver = ? OR sender = ? LIMIT ?;').all(wallet, wallet, howMuchBlocks)
             let toSend = ''
             sql.forEach((thing, index, array) => {
               toSend += JSON.stringify(thing) + (index === sql.length - 1 ? '' : '|')
@@ -65,7 +65,7 @@ function serveTCPApi (kafium, port) {
           }
 
           if (data.startsWith('getBlockByHash/')) {
-            if(!data.split('/')[1]) return socket.write('Error/MISSING_ARGS&&')
+            if (!data.split('/')[1]) return socket.write('Error/MISSING_ARGS&&')
             socket.write(`Block/${JSON.stringify(kafium.getBlockByHash(data.split('/')[1]))}&&`)
           }
 

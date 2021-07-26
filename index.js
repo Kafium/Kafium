@@ -21,15 +21,15 @@ P2P.on('ready', function (port) {
 
   if (parseArgv.enableTCPApi || config.tcpApi.enabled) {
     const TCPApi = TCP.serveTCPApi(kafium, parseArgv.tcpApi ?? config.tcpApi.apiPort ?? 2556)
-  
+
     TCPApi.on('ready', function (port) {
       consoleUtils.log(`TCP socket api is ready on ${port}!`)
     })
   }
-  
+
   if (parseArgv.enableWSApi || config.wsApi.enabled) {
     const WSApi = WS.serveWSApi(kafium, parseArgv.WSApi ?? config.wsApi.apiPort ?? 2557)
-  
+
     WSApi.on('ready', function (port) {
       consoleUtils.log(`Websocket api is ready on ${port}!`)
     })
