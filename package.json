@@ -3,11 +3,20 @@
     "version": "0.0.4",
     "description": "Kafium decentralised blochchain network",
     "scripts": {
-        "start": "node index.js"
+        "start": "node index.js",
+        "test": "node index.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Kafium/kafium.git"
     },
     "license": "GPL-2.0",
     "engines": {
         "node": "14.x"
+    },
+    "devDependencies": {
+        "jest": "^27.0.4",
+        "standard": "^16.0.1"
     },
     "dependencies": {
         "better-sqlite3": "^7.4.3",
