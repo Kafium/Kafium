@@ -42,7 +42,7 @@ class Block {
   }
 
   toData () {
-    if (blockType === '0x01') {
+    if (this.blockType === '0x01') {
       return { blockType: this.blockType, hash: this.calculateHash(), timestamp: this.timestamp, previousHash: this.previousHash, sender: this.sender, scriptSig: this.scriptSig, receiver: this.receiver, amount: this.amount, blockLink: this.blockLink, signature: this.signature }
     }
   }
