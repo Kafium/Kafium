@@ -110,7 +110,7 @@ class Blockchain extends EventEmitter {
   }
 
   createGenesisBlock () {
-    return new Block('0x01', null, 'kXgenesis', null, 'kXbdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', 10000000000000)
+    return new Block('0x01', null, 'kXgenesis', null, 'kX862110fe26717deb247424a8d8fe3796a311faf0387c96', 10000000000000)
   }
 
   getLatestBlock (publicKey) {
