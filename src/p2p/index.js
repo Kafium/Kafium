@@ -159,7 +159,7 @@ function serveP2P (kafium, options) {
 
       kafium.addBlock(block.sender, block)
       kafium.addBlock(targetBlock.receiver, targetBlock)
-    }).catch(err => { console.log(err) })
+    }).catch(err => { })
   })
 
   knownPeers.broadcast = function (data) {

@@ -63,8 +63,9 @@ class Block {
   isValid () {
     return new Promise((resolve, reject) => {
       if (this.blockType === '0x01') {
-        if (!this.sender.startsWith('kX') || !this.receiver.startsWith('kX')) return reject('INVALID_WALLET')
-        if (('kX'+crypto.createHash('ripemd160').update(this.scriptSig).digest('hex')+this.scriptSig.slice(-6)) !== this.sender) return reject('INVALID_SCRIPTSIG')
+        if (!this.sender.startsWith('kX') || !this.receiver.startsWith('kX')) return reject('WALLET_PREFIX')
+        if (!this.sender.length === 48 || !this.receiver.length === 48) return reject('WALLET_LENGTH')
+        if (('kX'+crypto.createHash('ripemd160').update(this.scriptSig).digest('hex')+this.scriptSig.slice(-6)) !== this.sender) return reject('SCRIPTSIG')
         if (this.sender === 'kX0000000000000000000000000000000000000000000000') return reject('BURN_ADDRESS')
         if (this.sender === this.receiver) return reject('SELF_SEND_PROHIBITED')
 
