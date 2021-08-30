@@ -4,6 +4,7 @@ const crypto = require('crypto')
 const curve = require('noble-ed25519')
 const SQLite = require('better-sqlite3')
 
+const KPoW = require('KPoW')
 const uint8 = require('../utils/uint8')
 
 class Block {
@@ -16,7 +17,7 @@ class Block {
     this.sender = sender
     this.scriptSig = scriptSig
 
-    if (type === '0x01') {
+    if (type === '01') {
       this.receiver = receiver
       this.amount = amount
       this.blockLink = null
@@ -28,7 +29,7 @@ class Block {
   }
 
   calculateHash () {
-    if (this.blockType === '0x01') {
+    if (this.blockType === '01') {
       return crypto.createHash('ripemd160').update(this.timestamp + this.previousHash + this.sender + this.receiver + this.amount).digest('hex')
     }
   }
@@ -42,8 +43,8 @@ class Block {
   }
 
   toData () {
-    if (this.blockType === '0x01') {
-      return { blockType: this.blockType, hash: this.calculateHash(), timestamp: this.timestamp, previousHash: this.previousHash, sender: this.sender, scriptSig: this.scriptSig, receiver: this.receiver, amount: this.amount, blockLink: this.blockLink, signature: this.signature }
+    if (this.blockType === '01') {
+      return { blockType: this.blockType, hash: this.calculateHash(), timestamp: this.timestamp, previousHash: this.previousHash, sender: this.sender, scriptSig: this.scriptSig, receiver: this.receiver, amount: this.amount, blockLink: this.blockLink, nonce: this.nonce, signature: this.signature }
     }
   }
 
@@ -62,7 +63,7 @@ class Block {
 
   isValid () {
     return new Promise((resolve, reject) => {
-      if (this.blockType === '0x01') {
+      if (this.blockType === '01') {
         if (!this.sender.startsWith('kX') || !this.receiver.startsWith('kX')) return reject('WALLET_PREFIX')
         if (!this.sender.length === 48 || !this.receiver.length === 48) return reject('WALLET_LENGTH')
         if (('kX'+crypto.createHash('ripemd160').update(this.scriptSig).digest('hex')+this.scriptSig.slice(-6)) !== this.sender) return reject('SCRIPTSIG')
@@ -71,6 +72,10 @@ class Block {
 
         if (!this.signature || this.signature.length === 0) {
           reject('NO_SIGNATURE')
+        }
+
+        if (!KPoW.checkWork(this.hash, this.nonce)) {
+          reject('INVALID_WORK')
         }
 
         curve.verify(this.signature, this.calculateHash(), uint8.hexToUint8(this.scriptSig)).then(bool => {
@@ -92,11 +97,11 @@ class Blockchain extends EventEmitter {
     const genesisReceiver = this.createGenesisBlock().receiver
     const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = ?;").get(genesisReceiver)
     if (!table['count(*)']) {
-      this.sql.prepare(`CREATE TABLE ${genesisReceiver} (blockType TEXT, hash TEXT, timestamp INTEGER, previousHash TEXT, sender TEXT, scriptSig TEXT, receiver TEXT, amount INTEGER, blockLink TEXT, signature TEXT);`).run()
+      this.sql.prepare(`CREATE TABLE ${genesisReceiver} (blockType TEXT, hash TEXT, timestamp INTEGER, previousHash TEXT, sender TEXT, scriptSig TEXT, receiver TEXT, amount INTEGER, blockLink TEXT, nonce TEXT, signature TEXT);`).run()
       this.sql.prepare(`CREATE UNIQUE INDEX ${genesisReceiver}_chain ON ${genesisReceiver} (hash);`).run()
       this.sql.pragma('synchronous = 1')
 
-      this.sql.prepare(`INSERT INTO ${genesisReceiver} (blockType, hash, timestamp, previousHash, sender, scriptSig, receiver, amount, blockLink, signature) VALUES (@blockType, @hash, @timestamp, @previousHash, @sender, @scriptSig, @receiver, @amount, @blockLink, @signature);`).run(this.createGenesisBlock().toData())
+      this.sql.prepare(`INSERT INTO ${genesisReceiver} (blockType, hash, timestamp, previousHash, sender, scriptSig, receiver, amount, blockLink, nonce, signature) VALUES (@blockType, @hash, @timestamp, @previousHash, @sender, @scriptSig, @receiver, @amount, @blockLink, @nonce, @signature);`).run(this.createGenesisBlock().toData())
     }
   }
 
@@ -111,7 +116,9 @@ class Blockchain extends EventEmitter {
   }
 
   createGenesisBlock () {
-    return new Block('0x01', null, 'kXgenesis', null, 'kX862110fe26717deb247424a8d8fe3796a311faf0387c96', 10000000000000)
+    const genesis = new Block('01', null, 'kXgenesis', null, 'kX862110fe26717deb247424a8d8fe3796a311faf0387c96', 10000000000000)
+    genesis.updateNonce(KPoW.doWork(genesis.hash))
+    return genesis
   }
 
   getLatestBlock (publicKey) {
