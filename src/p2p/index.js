@@ -20,7 +20,7 @@ function serveP2P (kafium, options) {
     p2pSetup.connect(options.P2P.split(':')[1], options.P2P.split(':')[0], function () {
       p2pSetup.write(`newPeer/${options.peerName}|${options.port}&&`)
       p2pSetup.write(`requestPeers&&`)
-      p2pSetup.write(`requestBlockSync/${kafium.getTotalBlocks()}&&`)
+      p2pSetup.write(`requestBlockSync&&`)
 
       knownPeers.add({peerName: 'InitialiserP2P', ipAddress: options.P2P.split(':')[0], port: options.P2P.split(':')[1]})
       
