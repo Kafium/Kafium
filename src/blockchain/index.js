@@ -4,6 +4,7 @@ const crypto = require('crypto')
 const curve = require('noble-ed25519')
 const SQLite = require('better-sqlite3')
 
+const kafiumJS = require('kafiumJS')
 const KPoW = require('KPoW')
 const uint8 = require('../utils/uint8')
 
@@ -66,9 +67,9 @@ class Block {
       if (this.blockType === '01') {
         if (!this.sender.startsWith('kX') || !this.receiver.startsWith('kX')) return reject('WALLET_PREFIX')
         if (!this.sender.length === 48 || !this.receiver.length === 48) return reject('WALLET_LENGTH')
-        if (('kX'+crypto.createHash('ripemd160').update(this.scriptSig).digest('hex')+this.scriptSig.slice(-6)) !== this.sender) return reject('SCRIPTSIG')
+        if (!kafiumJS.getKWalletFromPublicKey(this.scriptSig) === this.sender) return reject('SCRIPTSIG')
         if (this.sender === 'kX0000000000000000000000000000000000000000000000') return reject('BURN_ADDRESS')
-        if (this.sender === this.receiver) return reject('SELF_SEND_PROHIBITED')
+        if (this.sender === this.receiver) return reject('SELF_SEND')
 
         if (!this.signature || this.signature.length === 0) {
           reject('NO_SIGNATURE')
