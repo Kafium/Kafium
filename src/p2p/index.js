@@ -39,7 +39,7 @@ function serveP2P (kafium, options) {
             p2p.emit('newPeer', peerData)
           }
 
-          if (data.startsWith('Block/')) {
+          if (data.startsWith('Block/')) { // Prob broken fix this
             const updatedBlock = bUtils.Block.importFromJSON(JSON.parse(data.replace('Block/', '')))
             updatedBlock.signTransaction(JSON.parse(data.replace('Block/', '')).signature)
 
@@ -118,7 +118,7 @@ function serveP2P (kafium, options) {
           if (!auth) return
           kafium.sql.prepare("SELECT name FROM sqlite_master WHERE type='table';").all().forEach(table => {
             kafium.sql.prepare(`SELECT * FROM ${table.name};`).all().forEach((block, index, array) => {
-              if (block === kafium.createGenesisBlock().toSqlData()) return
+              if (block === kafium.createGenesisBlock().toData()) return
               if (typeof block.blockLink === 'object') return
               socketUtils.wait(index * 50).then(function () {
                 socket.write(`Block/${JSON.stringify(block)}&&`)
@@ -154,12 +154,13 @@ function serveP2P (kafium, options) {
     knownPeers.broadcast(`updatedQueue/${block.hash}&&`)
     kafium.checkBlock(block).then(() => {
       const targetBlock = bUtils.Block.importFromJSON(block.toData())
-      targetBlock.linkBlock(block.hash)
-      targetBlock.previousHash = kafium.getLatestBlock(targetBlock.receiver).hash
-
+      targetBlock.previousHash = kafium.getLatestBlock(targetBlock.receiver)?.hash ?? ""
+      targetBlock.linkBlock(block.calculateHash())
+      block.linkBlock(targetBlock.calculateHash())
+      
       kafium.addBlock(block.sender, block)
       kafium.addBlock(targetBlock.receiver, targetBlock)
-    }).catch(err => { })
+    }).catch(err => { console.log(err) })
   })
 
   knownPeers.broadcast = function (data) {

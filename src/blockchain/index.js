@@ -11,6 +11,7 @@ const uint8 = require('../utils/uint8')
 class Block {
   constructor (type, previousHash, sender, scriptSig, receiver, amount, timestamp) {
     this.blockType = type
+    this.hash = null
 
     this.timestamp = timestamp ?? Date.now()
     this.previousHash = previousHash
@@ -18,13 +19,10 @@ class Block {
     this.sender = sender
     this.scriptSig = scriptSig
 
-    if (type === '01') {
-      this.receiver = receiver
-      this.amount = amount
-      this.blockLink = null
-    }
-
+    this.receiver = receiver
+    this.amount = amount
     this.nonce = null
+    this.signature = null
 
     this.hash = this.calculateHash()
   }
@@ -98,7 +96,7 @@ class Blockchain extends EventEmitter {
     const genesisReceiver = this.createGenesisBlock().receiver
     const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = ?;").get(genesisReceiver)
     if (!table['count(*)']) {
-      this.sql.prepare(`CREATE TABLE ${genesisReceiver} (blockType TEXT, hash TEXT, timestamp INTEGER, previousHash TEXT, sender TEXT, scriptSig TEXT, receiver TEXT, amount INTEGER, blockLink TEXT, nonce TEXT, signature TEXT);`).run()
+      this.sql.prepare(`CREATE TABLE ${genesisReceiver} (blockType TEXT, hash TEXT, timestamp INTEGER, previousHash TEXT, sender TEXT, scriptSig TEXT, receiver TEXT, amount INTEGER, blockLink TEXT, nonce INT, signature TEXT);`).run()
       this.sql.prepare(`CREATE UNIQUE INDEX ${genesisReceiver}_chain ON ${genesisReceiver} (hash);`).run()
       this.sql.pragma('synchronous = 1')
 
@@ -157,7 +155,9 @@ class Blockchain extends EventEmitter {
         if (valid === true) {
           if (block.amount <= this.getBalanceOfAddress(block.sender)) {
             if (Math.sign(block.amount) === 1) {
-              resolve(true)
+              if (block.previousHash === this.getLatestBlock(block.sender)?.hash || block.previousHash === this.getLatestBlock(block.receiver)?.hash) {
+                resolve(true)
+              } else { reject('INVALID_PREVIOUSHASH')}
             } else { reject('INVALID_AMOUNT') }
           } else { reject('INSUFFICENT_BALANCE') }
         } else { reject('NOT_VALID') }
@@ -168,12 +168,14 @@ class Blockchain extends EventEmitter {
   addBlock (publicKey, block) {
     const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = ?;").get(publicKey)
     if (!table['count(*)']) {
-      this.sql.prepare(`CREATE TABLE ${publicKey} (blockType TEXT, hash TEXT, timestamp INTEGER, previousHash TEXT, sender TEXT, scriptSig TEXT, receiver TEXT, amount FLOAT, blockLink TEXT, signature TEXT);`).run()
+      this.sql.prepare(`CREATE TABLE ${publicKey} (blockType TEXT, hash TEXT, timestamp INTEGER, previousHash TEXT, sender TEXT, scriptSig TEXT, receiver TEXT, amount FLOAT, blockLink TEXT, nonce INT, signature TEXT);`).run()
       this.sql.prepare(`CREATE UNIQUE INDEX ${publicKey}_chain ON ${publicKey} (hash);`).run()
 
-      this.sql.prepare(`INSERT INTO ${publicKey} (blockType, hash, timestamp, previousHash, sender, scriptSig, receiver, amount, blockLink, signature) VALUES (@hash, @timestamp, @previousHash, @sender, @scriptSig, @receiver, @amount, @blockLink, @signature);`).run(block.toData())
+      this.sql.prepare(`INSERT INTO ${publicKey} (blockType, hash, timestamp, previousHash, sender, scriptSig, receiver, amount, blockLink, nonce, signature) VALUES (@blockType, @hash, @timestamp, @previousHash, @sender, @scriptSig, @receiver, @amount, @blockLink, @nonce, @signature);`).run(block.toData())
     } else {
-      this.sql.prepare(`INSERT INTO ${publicKey} (blockType, hash, timestamp, previousHash, sender, scriptSig, receiver, amount, blockLink, signature) VALUES (@hash, @timestamp, @previousHash, @sender, @scriptSig, @receiver, @amount, @blockLink, @signature);`).run(block.toData())
+      try {
+        this.sql.prepare(`INSERT INTO ${publicKey} (blockType, hash, timestamp, previousHash, sender, scriptSig, receiver, amount, blockLink, nonce, signature) VALUES (@blockType, @hash, @timestamp, @previousHash, @sender, @scriptSig, @receiver, @amount, @blockLink, @nonce, @signature);`).run(block.toData())
+      } catch (err) {}
     }
     this.emit('newBlock', block)
   }

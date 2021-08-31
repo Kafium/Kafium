@@ -15,10 +15,11 @@
     },
     "dependencies": {
         "better-sqlite3": "^7.4.3",
-        "noble-ed25519": "^1.2.5",
-        "ws": "^7.5.3",
-        "KPoW": "Kafium/KPoW",
         "kafiumJS": "Kafium/kafiumJS",
-        "rate-limiter-flexible": "^2.2.4"
+        "kpow": "github:Kafium/KPoW",
+        "KPoW": "Kafium/KPoW",
+        "noble-ed25519": "^1.2.5",
+        "rate-limiter-flexible": "^2.2.4",
+        "ws": "^7.5.3"
     }
 }

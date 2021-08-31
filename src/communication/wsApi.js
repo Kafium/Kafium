@@ -67,8 +67,8 @@ function serveWSApi (kafium, port) {
                 scriptSig = args[2],
                 receiver = args[3],
                 amount = args[4],
-                nonce = args[6],
-                signature = args[5]
+                nonce = args[5],
+                signature = args[6]
           const hash = kafium.getLatestBlock(sender).hash
           const receivedBlock = new Block('01', hash, sender, scriptSig, receiver, parseInt(amount), parseInt(createdAt))
           receivedBlock.signTransaction(signature)
