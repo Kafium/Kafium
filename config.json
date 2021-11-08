@@ -1,10 +1,14 @@
 {
   "peerName": "MyPeer",
-  "debug": true,
+  "debug": false,
   "P2P": null,
   "port": 2555,
-  "wsApi": {
+  "tcpApi": {
     "enabled": true,
     "apiPort": 2556
+  },
+  "wsApi": {
+    "enabled": true,
+    "apiPort": 2557
   }
 }

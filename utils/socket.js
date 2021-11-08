@@ -18,4 +18,4 @@ function waitForData (socket, waitingData) {
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
 
-module.exports = { waitForData, wait }
+module.exports = { waitForData }
