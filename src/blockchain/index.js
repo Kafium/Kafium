@@ -8,40 +8,37 @@ const SQLite = require('better-sqlite3')
 const uint8 = require('../utils/uint8')
 
 class Block {
-  constructor (epochElapsed, previousHash, sender, receiver, amount, external) {
-    this.previousHash = previousHash
-    this.epochElapsed = epochElapsed
-    this.sender = sender
-    this.receiver = receiver
-    this.amount = amount
+  constructor (data) {
+    this.previousHash = data.previousHash
+    this.timestamp = data.timestamp
+    this.sender = data.sender
+    this.receiver = data.receiver
+    this.amount = data.amount
     this.hash = this.calculateHash()
-
-    this.external = external ?? undefined
   }
 
   calculateHash () {
-    return crypto.createHash('ripemd160').update(this.epochElapsed + this.previousHash + this.sender + this.receiver + this.amount).digest('hex')
+    return crypto.createHash('ripemd160').update(this.timestamp + this.previousHash + this.sender + this.receiver + this.amount).digest('hex')
   }
 
   toSqlData () {
-    return { hash: this.calculateHash(), epochElapsed: this.epochElapsed, previousHash: this.previousHash, sender: this.sender, receiver: this.receiver, amount: this.amount, signature: this.signature, external: this.external }
+    return { hash: this.calculateHash(), timestamp: this.timestamp, previousHash: this.previousHash, sender: this.sender, receiver: this.receiver, amount: this.amount, signature: this.signature }
   }
 
   toData () {
     return `{
   "hash": "${this.hash}",
-  "epochElapsed": ${this.epochElapsed},
+  "timestamp": ${this.timestamp},
   "previousHash": "${this.previousHash}",
   "sender": "${this.sender}",
   "receiver": "${this.receiver}",
   "amount": ${this.amount},
-  "signature": "${this.signature ?? 'undefined'}",
-  "external": "${this.external ?? 'undefined'}"
+  "signature": "${this.signature ?? 'undefined'}"
 }`
   }
 
   static importFromJSON (JSONBlock) {
-    const block = new Block(JSONBlock.epochElapsed, JSONBlock.previousHash, JSONBlock.sender, JSONBlock.receiver, JSONBlock.amount)
+    const block = new Block({ timestamp: JSONBlock.timestamp, previousHash: JSONBlock.previousHash, sender: JSONBlock.sender, receiver: JSONBlock.receiver, amount: JSONBlock.amount })
     return block
   }
 
@@ -53,7 +50,6 @@ class Block {
     return new Promise((resolve, reject) => {
       if (!this.sender.startsWith('K#') || !this.receiver.startsWith('K#')) return reject('INVALID_WALLET')
       if (this.sender === this.receiver) return reject('SELF_SEND_PROHIBITED')
-      if (this.external) { if (this.external.length > 8) return reject('INVALID_EXTERNAL') }
 
       if (!this.signature || this.signature.length === 0) {
         reject('NO_SIGNATURE')
@@ -73,11 +69,11 @@ class Blockchain extends EventEmitter {
     this.sql = new SQLite('./data/blockchain.sqlite')
     const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = 'blockchain';").get()
     if (!table['count(*)']) {
-      this.sql.prepare('CREATE TABLE blockchain (hash TEXT, epochElapsed INTEGER, previousHash TEXT, sender TEXT, receiver TEXT, amount FLOAT, signature TEXT, external TEXT);').run()
+      this.sql.prepare('CREATE TABLE blockchain (hash TEXT, timestamp INTEGER, previousHash TEXT, sender TEXT, receiver TEXT, amount INT, signature TEXT);').run()
       this.sql.prepare('CREATE UNIQUE INDEX block_hash ON blockchain (hash);').run()
       this.sql.pragma('synchronous = 1')
 
-      this.sql.prepare('INSERT INTO blockchain (hash, epochElapsed, previousHash, sender, receiver, amount, signature, external) VALUES (@hash, @epochElapsed, @previousHash, @sender, @receiver, @amount, @signature, @external);').run(this.createGenesisBlock().toSqlData())
+      this.sql.prepare('INSERT INTO blockchain (hash, timestamp, previousHash, sender, receiver, amount, signature) VALUES (@hash, @timestamp, @previousHash, @sender, @receiver, @amount, @signature);').run(this.createGenesisBlock().toSqlData())
     }
   }
 
@@ -87,7 +83,7 @@ class Blockchain extends EventEmitter {
   }
 
   createGenesisBlock () {
-    return new Block(1609448400, '', 'GENESIS', 'K#bdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', 100000000000)
+    return new Block({ timestamp: 1609448400, previousHash: '', sender: 'GENESIS', receiver: 'K#bdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', amount: 100000000000})
   }
 
   getLatestBlock () {
@@ -104,7 +100,7 @@ class Blockchain extends EventEmitter {
         if (valid === true) {
           if (block.amount <= this.getBalanceOfAddress(block.sender)) {
             if (Math.sign(block.amount) === 1) {
-              this.sql.prepare('INSERT INTO blockchain (hash, epochElapsed, previousHash, sender, receiver, amount, signature, external) VALUES (@hash, @epochElapsed, @previousHash, @sender, @receiver, @amount, @signature, @external);').run(block.toSqlData())
+              this.sql.prepare('INSERT INTO blockchain (hash, timestamp, previousHash, sender, receiver, amount, signature, external) VALUES (@hash, @epochElapsed, @previousHash, @sender, @receiver, @amount, @signature);').run(block.toSqlData())
               this.emit('newBlock', block)
               resolve(block)
             } else { reject('INVALID_AMOUNT') }
