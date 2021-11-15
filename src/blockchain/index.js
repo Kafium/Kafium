@@ -7,7 +7,7 @@ const SQLite = require('better-sqlite3')
 
 const uint8 = require('../utils/uint8')
 
-class Block {
+class txBlock {
   constructor (data) {
     this.previousHash = data.previousHash
     this.timestamp = data.timestamp
@@ -33,7 +33,7 @@ class Block {
   "sender": "${this.sender}",
   "receiver": "${this.receiver}",
   "amount": ${this.amount},
-  "signature": "${this.signature ?? 'undefined'}"
+  "signature": "${this.signature}"
 }`
   }
 
@@ -48,7 +48,7 @@ class Block {
 
   isValid () {
     return new Promise((resolve, reject) => {
-      if (!this.sender.startsWith('K#') || !this.receiver.startsWith('K#')) return reject('INVALID_WALLET')
+      if (!this.sender.startsWith('kX') || !this.receiver.startsWith('kX')) return reject('INVALID_WALLET')
       if (this.sender === this.receiver) return reject('SELF_SEND_PROHIBITED')
 
       if (!this.signature || this.signature.length === 0) {
@@ -66,7 +66,7 @@ class Blockchain extends EventEmitter {
   constructor () {
     super()
 
-    this.sql = new SQLite('./data/blockchain.sqlite')
+    this.sql = new SQLite('./storage/blockchain.sqlite')
     const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = 'blockchain';").get()
     if (!table['count(*)']) {
       this.sql.prepare('CREATE TABLE blockchain (hash TEXT, timestamp INTEGER, previousHash TEXT, sender TEXT, receiver TEXT, amount INT, signature TEXT);').run()
@@ -75,6 +75,10 @@ class Blockchain extends EventEmitter {
 
       this.sql.prepare('INSERT INTO blockchain (hash, timestamp, previousHash, sender, receiver, amount, signature) VALUES (@hash, @timestamp, @previousHash, @sender, @receiver, @amount, @signature);').run(this.createGenesisBlock().toSqlData())
     }
+
+    setInterval(() => {
+      
+    }, 1000)
   }
 
   getTotalBlocks () {
@@ -83,7 +87,7 @@ class Blockchain extends EventEmitter {
   }
 
   createGenesisBlock () {
-    return new Block({ timestamp: 1609448400, previousHash: '', sender: 'GENESIS', receiver: 'K#bdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', amount: 100000000000})
+    return new txBlock({ timestamp: 1609448400, previousHash: '', sender: 'GENESIS', receiver: 'K#bdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', amount: 100000000000})
   }
 
   getLatestBlock () {
@@ -154,5 +158,5 @@ class Blockchain extends EventEmitter {
 
 module.exports = {
   Blockchain,
-  Block
+  txBlock
 }

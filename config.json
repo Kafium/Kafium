@@ -1,8 +1,7 @@
 {
-  "peerName": "MyPeer",
   "debug": false,
-  "P2P": null,
-  "port": 2555,
+  "frontier": null,
+  "port": 2556,
   "tcpApi": {
     "enabled": true,
     "apiPort": 2556
