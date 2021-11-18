@@ -4,15 +4,13 @@ const dgram = require('dgram')
 class KafiumP2P extends events.EventEmitter {
   constructor(kafium, settings) {
     super()
-
     this.knownPeers = []
 
     const server = dgram.createSocket('udp4')
 
-    server.on('listening', function () {
+    server.on('listening', () => {
       const address = server.address()
 
-      console.log(address)
       this.emit('ready', { ipAddress: address.address, port: settings.port })
     })
 
@@ -25,8 +23,12 @@ class KafiumP2P extends events.EventEmitter {
       nodeStatue: 0
     }
 
+    if (typeof settings.frontier === "undefined") {
+      this.nodeData.nodeStatus = 1
+    }
+
     server.bind(settings.port)
   }
-} 
+}
 
 module.exports = KafiumP2P

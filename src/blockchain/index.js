@@ -87,7 +87,7 @@ class Blockchain extends EventEmitter {
   }
 
   createGenesisBlock () {
-    return new txBlock({ timestamp: 1609448400, previousHash: '', sender: 'GENESIS', receiver: 'K#bdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', amount: 100000000000})
+    return new txBlock({ timestamp: 1609448400, previousHash: '', sender: 'kXGENESIS', receiver: 'K#bdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', amount: 100000000000})
   }
 
   getLatestBlock () {
