@@ -1,7 +1,7 @@
 const events = require('events')
 const dgram = require('dgram')
 
-class KafiumP2P extends events.EventEmitter {
+class P2P extends events.EventEmitter {
   constructor(kafium, settings) {
     super()
     this.knownPeers = []
@@ -31,4 +31,4 @@ class KafiumP2P extends events.EventEmitter {
   }
 }
 
-module.exports = KafiumP2P
+module.exports = P2P

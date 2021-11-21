@@ -1,7 +1,6 @@
 const parseArgv = require('./src/utils/argParser')(process.argv)
 const P2P = require('./src/network/p2p')
 const TCP = require('./src/node/TCP')
-const WS = require('./src/node/WS')
 
 const blockchain = require('./src/blockchain')
 const kafium = new blockchain.Blockchain()
@@ -23,14 +22,6 @@ KafiumP2P.on('ready', (data) => {
 
     // TCPApi.on('ready', function (port) {
     //  console.log(`TCP socket api is ready on ${port}!`)
-    // })
-  }
-
-  if (parseArgv.enableWSApi || config.wsApi.enabled) {
-    // const WSApi = WS.serveWSApi(kafium, parseArgv.WSApi ?? config.wsApi.apiPort ?? 2557)
-
-    // WSApi.on('ready', function (port) {
-    //  console.log(`Websocket api is ready on ${port}!`)
     // })
   }
 })

@@ -1,7 +1,7 @@
 {
     "name": "kafium",
     "version": "0.0.4",
-    "description": "Kafium decentralised blochchain network",
+    "description": "Kafium infinitely-scalable blockchain.",
     "scripts": {
         "start": "node index.js"
     },
@@ -14,10 +14,10 @@
         "node": "14.x"
     },
     "dependencies": {
+        "base62js": "Kafium/Base62js",
+        "kcrypto": "Kafium/KCrypto",
         "better-sqlite3": "^7.4.3",
         "noble-ed25519": "^1.2.5",
-        "public-ip": "^4.0.4",
-        "rate-limiter-flexible": "^2.2.4",
-        "ws": "^7.5.3"
+        "rate-limiter-flexible": "^2.2.4"
     }
 }

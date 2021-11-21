@@ -5,69 +5,20 @@ const curve = require('noble-ed25519')
 
 const SQLite = require('better-sqlite3')
 
-const uint8 = require('../utils/uint8')
-
-class txBlock {
-  constructor (data) {
-    this.previousHash = data.previousHash
-    this.timestamp = data.timestamp
-    this.sender = data.sender
-    this.receiver = data.receiver
-    this.amount = data.amount
-    this.hash = this.calculateHash()
-  }
-
-  calculateHash () {
-    return crypto.createHash('ripemd160').update(this.timestamp + this.previousHash + this.sender + this.receiver + this.amount).digest('hex')
-  }
-
-  toSqlData () {
-    return { hash: this.calculateHash(), timestamp: this.timestamp, previousHash: this.previousHash, sender: this.sender, receiver: this.receiver, amount: this.amount, signature: this.signature }
-  }
-
-  toData () {
-    return `{
-  "hash": "${this.hash}",
-  "timestamp": ${this.timestamp},
-  "previousHash": "${this.previousHash}",
-  "sender": "${this.sender}",
-  "receiver": "${this.receiver}",
-  "amount": ${this.amount},
-  "signature": "${this.signature}"
-}`
-  }
-
-  static importFromJSON (JSONBlock) {
-    const block = new Block({ timestamp: JSONBlock.timestamp, previousHash: JSONBlock.previousHash, sender: JSONBlock.sender, receiver: JSONBlock.receiver, amount: JSONBlock.amount })
-    return block
-  }
-
-  signTransactionManually (signature) {
-    this.signature = signature
-  }
-
-  isValid () {
-    return new Promise((resolve, reject) => {
-      if (!this.sender.startsWith('kX') || !this.receiver.startsWith('kX')) return reject('INVALID_WALLET')
-      if (this.sender === this.receiver) return reject('SELF_SEND_PROHIBITED')
-
-      if (!this.signature || this.signature.length === 0) {
-        reject('NO_SIGNATURE')
-      }
-
-      curve.verify(this.signature, this.calculateHash(), uint8.hexToUint8(this.sender.replace('K#', ''))).then(bool => {
-        resolve(bool)
-      })
-    })
-  }
-}
-
 class Blockchain extends EventEmitter {
   constructor () {
     super()
-
+    
     this.sql = new SQLite('./storage/blockchain.sqlite')
     const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = 'blockchain';").get()
+    if (!table['count(*)']) {
+      this.sql.prepare('CREATE TABLE blockchain (hash TEXT, blockHeight INT, previousHash TEXT, blockSize INT, includedBlocks TEXT, interactedWallets TEXT, producer TEXT);').run()
+      this.sql.prepare('CREATE UNIQUE INDEX block_hash ON blockchain (hash);').run()
+      this.sql.pragma('synchronous = 1')
+
+      this.sql.prepare('INSERT INTO blockchain (hash, timestamp, previousHash, sender, receiver, amount, signature) VALUES (@hash, @timestamp, @previousHash, @sender, @receiver, @amount, @signature);').run(this.createGenesisBlock().toSqlData())
+    }
+
     if (!table['count(*)']) {
       this.sql.prepare('CREATE TABLE blockchain (hash TEXT, timestamp INTEGER, previousHash TEXT, sender TEXT, receiver TEXT, amount INT, signature TEXT);').run()
       this.sql.prepare('CREATE UNIQUE INDEX block_hash ON blockchain (hash);').run()
@@ -75,10 +26,6 @@ class Blockchain extends EventEmitter {
 
       this.sql.prepare('INSERT INTO blockchain (hash, timestamp, previousHash, sender, receiver, amount, signature) VALUES (@hash, @timestamp, @previousHash, @sender, @receiver, @amount, @signature);').run(this.createGenesisBlock().toSqlData())
     }
-
-    setInterval(() => {
-      
-    }, 1000)
   }
 
   getTotalBlocks () {
@@ -86,8 +33,12 @@ class Blockchain extends EventEmitter {
     return res['count(*)']
   }
 
-  createGenesisBlock () {
+  createGenesisTx () {
     return new txBlock({ timestamp: 1609448400, previousHash: '', sender: 'kXGENESIS', receiver: 'K#bdf5d0776f2bd16708351636c95f0590aa3f69ea37b9a22c3f5594f22a387c96', amount: 100000000000})
+  }
+
+  createBlock () {
+    this.sql.prepare('INSERT INTO blockchain (hash, blockHeight, previousHash, blockSize, includedBlocks, interactedWallets, producer) VALUES (@hash, @blockHeight, @previousHash, @blockSize, @includedBlocks, @interactedWallets, @producer);').run()
   }
 
   getLatestBlock () {
@@ -98,7 +49,7 @@ class Blockchain extends EventEmitter {
     return this.sql.prepare('SELECT * FROM blockchain WHERE hash = ?').get(hash)
   }
 
-  addBlock (block) {
+  importTx (blockHash, txBlock) {
     return new Promise((resolve, reject) => {
       block.isValid().then(valid => {
         if (valid === true) {
@@ -157,6 +108,5 @@ class Blockchain extends EventEmitter {
 }
 
 module.exports = {
-  Blockchain,
-  txBlock
+  Blockchain
 }

@@ -5,9 +5,5 @@
   "tcpApi": {
     "enabled": true,
     "apiPort": 2556
-  },
-  "wsApi": {
-    "enabled": true,
-    "apiPort": 2557
   }
 }
