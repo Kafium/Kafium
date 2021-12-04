@@ -1,8 +1,6 @@
 const EventEmitter = require('events').EventEmitter
 const crypto = require('crypto')
 
-const curve = require('noble-ed25519')
-
 const SQLite = require('better-sqlite3')
 
 class Blockchain extends EventEmitter {
@@ -12,7 +10,7 @@ class Blockchain extends EventEmitter {
     this.sql = new SQLite('./storage/blockchain.sqlite')
     const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = 'blockchain';").get()
     if (!table['count(*)']) {
-      this.sql.prepare('CREATE TABLE blockchain (hash TEXT, blockHeight INT, previousHash TEXT, blockSize INT, includedBlocks TEXT, interactedWallets TEXT, producer TEXT);').run()
+      this.sql.prepare('CREATE TABLE blockchain (hash TEXT, blockHeight INT, blockSize INT, includedBlocks TEXT, interactedWallets TEXT, producer TEXT, previousHash TEXT);').run()
       this.sql.prepare('CREATE UNIQUE INDEX block_hash ON blockchain (hash);').run()
       this.sql.pragma('synchronous = 1')
 
@@ -38,7 +36,7 @@ class Blockchain extends EventEmitter {
   }
 
   createBlock () {
-    this.sql.prepare('INSERT INTO blockchain (hash, blockHeight, previousHash, blockSize, includedBlocks, interactedWallets, producer) VALUES (@hash, @blockHeight, @previousHash, @blockSize, @includedBlocks, @interactedWallets, @producer);').run()
+    this.sql.prepare('INSERT INTO blockchain (hash, blockHeight, blockSize, includedBlocks, interactedWallets, producer, previousHash) VALUES (@hash, @blockHeight, @blockSize, @includedBlocks, @interactedWallets, @producer, @previousHash);').run()
   }
 
   getLatestBlock () {

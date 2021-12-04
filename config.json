@@ -2,8 +2,5 @@
   "debug": false,
   "frontier": null,
   "port": 2556,
-  "tcpApi": {
-    "enabled": true,
-    "apiPort": 2556
-  }
+  "privateKey": "idk"
 }

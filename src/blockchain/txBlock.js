@@ -1,27 +1,30 @@
 const crypto = require('crypto')
-const curve = require('noble-ed25519')
+const kcrypto = require('kcrypto')
 
 class txBlock {
   constructor (data) {
-    this.previousHash = data.previousHash
+    this.txType = data.txType
     this.timestamp = data.timestamp
+    this.previousHash = data.previousHash
     this.sender = data.sender
     this.receiver = data.receiver
     this.amount = data.amount
+    
     this.hash = this.calculateHash()
   }
 
   calculateHash () {
-    return crypto.createHash('ripemd160').update(this.timestamp + this.previousHash + this.sender + this.receiver + this.amount).digest('hex')
+    return crypto.createHash('ripemd160').update(this.txType + this.timestamp + this.previousHash + this.sender + this.receiver + this.amount).digest('hex')
   }
 
   toSqlData () {
-    return { hash: this.calculateHash(), timestamp: this.timestamp, previousHash: this.previousHash, sender: this.sender, receiver: this.receiver, amount: this.amount, signature: this.signature }
+    return { hash: this.calculateHash(), txType: this.txType, timestamp: this.timestamp, previousHash: this.previousHash, sender: this.sender, receiver: this.receiver, amount: this.amount, signature: this.signature }
   }
 
   toData () {
     return `{
   "hash": "${this.hash}",
+  "txType": "${this.txType}",
   "timestamp": ${this.timestamp},
   "previousHash": "${this.previousHash}",
   "sender": "${this.sender}",
@@ -32,7 +35,7 @@ class txBlock {
   }
 
   static importFromJSON (JSONBlock) {
-    const block = new Block({ timestamp: JSONBlock.timestamp, previousHash: JSONBlock.previousHash, sender: JSONBlock.sender, receiver: JSONBlock.receiver, amount: JSONBlock.amount })
+    const block = new Block({ txType: JSONBlock.txType, timestamp: JSONBlock.timestamp, previousHash: JSONBlock.previousHash, sender: JSONBlock.sender, receiver: JSONBlock.receiver, amount: JSONBlock.amount })
     return block
   }
 
@@ -49,7 +52,7 @@ class txBlock {
         reject('NO_SIGNATURE')
       }
 
-      curve.verify(this.signature, this.calculateHash(), Buffer.from(this.sender.replace('kX', '').slice(0, -4), 'base64').toString()).then(bool => {
+      kcrypto.ed25519.verify(this.signature, this.calculateHash(), Buffer.from(this.sender.replace('kX', '').slice(0, -4), 'base64').toString()).then(bool => {
         resolve(bool)
       })
     })

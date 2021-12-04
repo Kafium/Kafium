@@ -1,10 +1,14 @@
+const kafiumJS = require('kafiumjs')
+
 const events = require('events')
 const dgram = require('dgram')
 
 class P2P extends events.EventEmitter {
-  constructor(kafium, settings) {
+  constructor(settings) {
     super()
     this.knownPeers = []
+
+    const wallet = new kafiumJS.wallet.Wallet(settings.privateKey)
 
     const server = dgram.createSocket('udp4')
 
