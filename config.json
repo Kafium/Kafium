@@ -1,6 +1,10 @@
 {
-  "debug": false,
-  "frontier": null,
-  "port": 2556,
-  "privateKey": "idk"
+  "peerName": "MyPeer",
+  "debug": true,
+  "P2P": null,
+  "port": 2555,
+  "wsApi": {
+    "enabled": true,
+    "apiPort": 2556
+  }
 }
