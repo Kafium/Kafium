@@ -2,7 +2,7 @@ const EventEmitter = require('events').EventEmitter
 const net = require('net')
 
 const socketUtils = require('../utils/socket')
-const bUtils = require('../blockchain')
+const bUtils = require('../ledger/BlockLattice')
 
 module.exports = {
   serveP2P
@@ -19,11 +19,11 @@ function serveP2P (kafium, options) {
 
     p2pSetup.connect(options.P2P.split(':')[1], options.P2P.split(':')[0], function () {
       p2pSetup.write(`newPeer/${options.peerName}|${options.port}&&`)
-      p2pSetup.write(`requestPeers&&`)
-      p2pSetup.write(`requestBlockSync&&`)
+      p2pSetup.write('requestPeers&&')
+      p2pSetup.write('requestBlockSync&&')
 
-      knownPeers.add({peerName: 'InitialiserP2P', ipAddress: options.P2P.split(':')[0], port: options.P2P.split(':')[1]})
-      
+      knownPeers.add({ peerName: 'InitialiserP2P', ipAddress: options.P2P.split(':')[0], port: options.P2P.split(':')[1] })
+
       p2pSetup.on('data', function (data) {
         const packet = data.toString().split('&&')
 
@@ -45,10 +45,10 @@ function serveP2P (kafium, options) {
 
             const targetBlock = bUtils.Block.importFromJSON(updatedBlock.toData())
             targetBlock.linkBlock(updatedBlock.hash)
-            targetBlock.previousHash = kafium.getLatestBlock(targetBlock.receiver).hash
-      
+            targetBlock.previousHash = kafium.getLatestBlock(targetBlock.recipient).hash
+
             kafium.addBlock(updatedBlock.sender, updatedBlock)
-            kafium.addBlock(targetBlock.receiver, targetBlock)
+            kafium.addBlock(targetBlock.recipient, targetBlock)
           }
         })
       })
@@ -131,6 +131,7 @@ function serveP2P (kafium, options) {
           if (!auth) return
           if (!jailedBlocks.has(data.split('/')[1])) {
             const p2pRequest = new net.Socket()
+            
             p2pRequest.connect(auth.split('|')[1].split(':')[1], socket.remoteAddress.replace('::ffff:', ''), function () {
               p2pRequest.write(`requestBlock/${data.split('/')[1]}`)
               socketUtils.waitForData(p2pRequest, 'requestedBlock').then(data => {
@@ -154,12 +155,12 @@ function serveP2P (kafium, options) {
     knownPeers.broadcast(`updatedQueue/${block.hash}&&`)
     kafium.checkBlock(block).then(() => {
       const targetBlock = bUtils.Block.importFromJSON(block.toData())
-      targetBlock.previousHash = kafium.getLatestBlock(targetBlock.receiver)?.hash ?? ""
+      targetBlock.previousHash = kafium.getLatestBlock(targetBlock.recipient)?.hash ?? ''
       targetBlock.linkBlock(block.calculateHash())
       block.linkBlock(targetBlock.calculateHash())
-      
+
       kafium.addBlock(block.sender, block)
-      kafium.addBlock(targetBlock.receiver, targetBlock)
+      kafium.addBlock(targetBlock.recipient, targetBlock)
     }).catch(err => { console.log(err) })
   })
 

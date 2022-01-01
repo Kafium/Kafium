@@ -3,7 +3,7 @@
   "debug": true,
   "P2P": null,
   "port": 2555,
-  "wsApi": {
+  "rpcApi": {
     "enabled": true,
     "apiPort": 2556
   }

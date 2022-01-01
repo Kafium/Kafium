@@ -1,13 +1,13 @@
 const cWrapper = require('./src/utils/consoleWrapper')
-const P2PNetwork = require('./src/p2p')
-const WS = require('./src/communication/wsApi')
+const p2pNetwork = require('./src/p2p')
+const RPCApi = require('./src/node/rpcApi')
 
-const blockchain = require('./src/blockchain')
-const kafium = new blockchain.Blockchain()
+const BlockLattice = require('./src/ledger/BlockLattice')
+const kafium = new BlockLattice()
 
 const config = require('./config.json')
 
-const P2P = P2PNetwork.serveP2P(kafium, {
+const P2P = p2pNetwork.serveP2P(kafium, {
   port: config.port,
   peerName: config.peerName,
   P2P: config.P2P,
@@ -17,12 +17,10 @@ const P2P = P2PNetwork.serveP2P(kafium, {
 P2P.on('ready', function (port) {
   cWrapper.log(`Connected and served P2P networking on ${port}!`)
 
-  if (config.wsApi.enabled) {
-    const WSApi = WS.serveWSApi(kafium, config.wsApi.apiPort ?? 2557)
+  if (config.rpcApi.enabled) {
+    const RPC = new RPCApi(kafium, config.rpcApi.apiPort)
 
-    WSApi.on('ready', function (port) {
-      cWrapper.log(`Websocket api is ready on ${port}!`)
-    })
+    cWrapper.log(`RPC api listening on ${config.rpcApi.apiPort}`)
   }
 })
 
@@ -38,23 +36,6 @@ P2P.on('newPeer', function (peer) {
 P2P.on('sync', function (block) {
   if (block === 0) return cWrapper.log('Blockchain synchronizing completed!')
   cWrapper.log(`Synchronized ${block} blocks...`)
-})
-
-cWrapper.prompt.on('line', function (text) {
-  if (text.startsWith('peerList')) {
-    const peers = []
-    P2P.knownPeers.forEach((key) => { peers.push(key) })
-
-    cWrapper.log(`Known peers: ${peers.join(', ')}`)
-  }
-
-  if (text.startsWith('blocks')) {
-    kafium.getTotalBlocks().then(count => {
-      cWrapper.log(`Total blocks: ${count}`)
-    })
-  }
-
-  cWrapper.prompt.prompt(true)
 })
 
 process.on('uncaughtException', function (err) {
