@@ -14,11 +14,11 @@ module.exports = class BlockLattice extends EventEmitter {
     const genesisReceiver = this.createGenesisBlock().recipient
     const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = ?;").get(genesisReceiver)
     if (!table['count(*)']) {
-      this.sql.prepare(`CREATE TABLE ${genesisReceiver} (blockType TEXT, hash TEXT, timestamp INTEGER, previousHash TEXT, sender TEXT TEXT, recipient TEXT, amount TEXT, blockLink TEXT, nonce TEXT, signature TEXT);`).run()
+      this.sql.prepare(`CREATE TABLE ${genesisReceiver} (blockType TEXT, hash TEXT, timestamp INTEGER, previousBlock TEXT, sender TEXT TEXT, recipient TEXT, amount TEXT, blockLink TEXT, work TEXT, signature TEXT);`).run()
       this.sql.prepare(`CREATE UNIQUE INDEX ${genesisReceiver}_chain ON ${genesisReceiver} (hash);`).run()
       this.sql.pragma('synchronous = 1')
 
-      this.sql.prepare(`INSERT INTO ${genesisReceiver} (blockType, hash, timestamp, previousHash, sender, recipient, amount, blockLink, nonce, signature) VALUES (@blockType, @hash, @timestamp, @previousHash, @sender, @recipient, @amount, @blockLink, @nonce, @signature);`).run(this.createGenesisBlock().toData())
+      this.sql.prepare(`INSERT INTO ${genesisReceiver} (blockType, hash, timestamp, previousBlock, sender, recipient, amount, blockLink, nonce, signature) VALUES (@blockType, @hash, @timestamp, @previousBlock, @sender, @recipient, @amount, @blockLink, @work, @signature);`).run(this.createGenesisBlock().toData())
     }
   }
 
@@ -34,7 +34,7 @@ module.exports = class BlockLattice extends EventEmitter {
 
   createGenesisBlock () {
     const genesis = new Block('TRANSFER', { sender: null, recipient: 'kX8KCiriNpMK5QU2Wdc0IEysFqIYAzqUREUuRpT3RxtABe0', amount: 10000000000000n })
-    genesis.updateNonce(KPoW.doWork(genesis.hash))
+    genesis.updateWork(KPoW.doWork(genesis.hash))
     return genesis
   }
 
@@ -76,9 +76,9 @@ module.exports = class BlockLattice extends EventEmitter {
         if (valid === true) {
           if (block.amount <= this.getBalanceOfAddress(block.sender)) {
             if (Math.sign(block.amount) === 1) {
-              if (block.previousHash === this.getLatestBlock(block.sender)?.hash || block.previousHash === this.getLatestBlock(block.recipient)?.hash) {
+              if (block.previousBlock === this.getLatestBlock(block.sender)?.hash || block.previousBlock === this.getLatestBlock(block.recipient)?.hash) {
                 resolve(true)
-              } else { reject('INVALID_PREVIOUSHASH') }
+              } else { reject('INVALID_PREVIOUSBLOCK') }
             } else { reject('INVALID_AMOUNT') }
           } else { reject('INSUFFICENT_BALANCE') }
         } else { reject('NOT_VALID') }
@@ -89,13 +89,13 @@ module.exports = class BlockLattice extends EventEmitter {
   addBlock (publicKey, block) {
     const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = ?;").get(publicKey)
     if (!table['count(*)']) {
-      this.sql.prepare(`CREATE TABLE ${publicKey} (blockType TEXT, hash TEXT, timestamp INTEGER, previousHash TEXT, sender TEXT, recipient TEXT, amount TEXT, blockLink TEXT, nonce TEXT, signature TEXT);`).run()
+      this.sql.prepare(`CREATE TABLE ${publicKey} (blockType TEXT, hash TEXT, timestamp INTEGER, previousBlock TEXT, sender TEXT, recipient TEXT, amount TEXT, blockLink TEXT, work TEXT, signature TEXT);`).run()
       this.sql.prepare(`CREATE UNIQUE INDEX ${publicKey}_chain ON ${publicKey} (hash);`).run()
 
-      this.sql.prepare(`INSERT INTO ${publicKey} (blockType, hash, timestamp, previousHash, sender, recipient, amount, blockLink, nonce, signature) VALUES (@blockType, @hash, @timestamp, @previousHash, @sender, @recipient, @amount, @blockLink, @nonce, @signature);`).run(block.toData())
+      this.sql.prepare(`INSERT INTO ${publicKey} (blockType, hash, timestamp, previousBlock, sender, recipient, amount, blockLink, work, signature) VALUES (@blockType, @hash, @timestamp, @previousBlock, @sender, @recipient, @amount, @blockLink, @work, @signature);`).run(block.toData())
     } else {
       try {
-        this.sql.prepare(`INSERT INTO ${publicKey} (blockType, hash, timestamp, previousHash, sender, recipient, amount, blockLink, nonce, signature) VALUES (@blockType, @hash, @timestamp, @previousHash, @sender, @recipient, @amount, @blockLink, @nonce, @signature);`).run(block.toData())
+        this.sql.prepare(`INSERT INTO ${publicKey} (blockType, hash, timestamp, previousBlock, sender, recipient, amount, blockLink, work, signature) VALUES (@blockType, @hash, @timestamp, @previousBlock, @sender, @recipient, @amount, @blockLink, @work, @signature);`).run(block.toData())
       } catch (err) {}
     }
 
@@ -134,7 +134,7 @@ module.exports = class BlockLattice extends EventEmitter {
       const currentBlock = this.chain[i]
       const previousBlock = this.chain[i - 1]
 
-      if (previousBlock.hash !== currentBlock.previousHash) {
+      if (previousBlock.hash !== currentBlock.previousBlock) {
         return false
       }
 

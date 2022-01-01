@@ -45,7 +45,7 @@ function serveP2P (kafium, options) {
 
             const targetBlock = bUtils.Block.importFromJSON(updatedBlock.toData())
             targetBlock.linkBlock(updatedBlock.hash)
-            targetBlock.previousHash = kafium.getLatestBlock(targetBlock.recipient).hash
+            targetBlock.previousBlock = kafium.getLatestBlock(targetBlock.recipient).hash
 
             kafium.addBlock(updatedBlock.sender, updatedBlock)
             kafium.addBlock(targetBlock.recipient, targetBlock)
@@ -155,7 +155,7 @@ function serveP2P (kafium, options) {
     knownPeers.broadcast(`updatedQueue/${block.hash}&&`)
     kafium.checkBlock(block).then(() => {
       const targetBlock = bUtils.Block.importFromJSON(block.toData())
-      targetBlock.previousHash = kafium.getLatestBlock(targetBlock.recipient)?.hash ?? ''
+      targetBlock.previousBlock = kafium.getLatestBlock(targetBlock.recipient)?.hash ?? ''
       targetBlock.linkBlock(block.calculateHash())
       block.linkBlock(targetBlock.calculateHash())
 

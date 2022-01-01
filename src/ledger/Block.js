@@ -9,11 +9,11 @@ module.exports = class Block {
     this.blockType = type
     this.hash = null
     this.timestamp = data?.timestamp ?? Date.now()
-    this.previousHash = data.previousHash
+    this.previousBlock = data.previousBlock
     this.sender = data.sender
     this.recipient = data.recipient
     this.amount = data.amount
-    this.nonce = data.nonce
+    this.work = data.work
     this.signature = data.signature
 
     this.hash = this.calculateHash()
@@ -21,7 +21,7 @@ module.exports = class Block {
 
   calculateHash () {
     if (this.blockType === 'TRANSFER') {
-      return crypto.createHash('ripemd160').update(this.blockType + this.previousHash + this.sender + this.recipient + this.amount).digest('hex')
+      return crypto.createHash('ripemd160').update(this.blockType + this.previousBlock + this.sender + this.recipient + this.amount).digest('hex')
     }
   }
 
@@ -31,7 +31,7 @@ module.exports = class Block {
 
   toData () {
     if (this.blockType === 'TRANSFER') {
-      return { blockType: this.blockType, hash: this.calculateHash(), timestamp: this.timestamp, previousHash: this.previousHash, sender: this.sender, recipient: this.recipient, amount: this.amount.toString(), blockLink: this.blockLink, nonce: this.nonce, signature: this.signature }
+      return { blockType: this.blockType, hash: this.calculateHash(), timestamp: this.timestamp, previousBlock: this.previousBlock, sender: this.sender, recipient: this.recipient, amount: this.amount.toString(), blockLink: this.blockLink, work: this.work, signature: this.signature }
     }
   }
 
@@ -44,8 +44,8 @@ module.exports = class Block {
     this.blockLink = hash
   }
 
-  updateNonce (nonce) {
-    this.nonce = nonce
+  updateWork (work) {
+    this.work = work
   }
 
   isValid () {
@@ -61,7 +61,7 @@ module.exports = class Block {
           reject('NO_SIGNATURE')
         }
 
-        if (!KPoW.checkWork(this.hash, this.nonce)) {
+        if (!KPoW.checkWork(this.hash, this.work)) {
           reject('INVALID_WORK')
         }
 

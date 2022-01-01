@@ -32,9 +32,11 @@ module.exports = class RPCApi extends events.EventEmitter {
             returnedData = this.kafium.getBalanceOfAddress(request.args[0]).toString()
           }
 
-          if (request.method === "announceTransaction") {
+          if (request.method === "announceBlock") {
             const block = Block.importFromJSON(request.args[0])
             this.kafium.queueBlock(block)
+
+            returnedData = block.hash
           }
 
           if (request.method === "getBlockByHash") {
