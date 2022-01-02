@@ -44,7 +44,7 @@ module.exports = class RPCApi extends events.EventEmitter {
           }
 
           if (request.method === "getTotalBlocks") {
-            returnedData = this.kafium.getTotalBlocks()
+            returnedData = this.kafium.getTotalBlocks().toString()
           }
 
           if (request.method === "queryChain") {
