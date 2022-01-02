@@ -2,7 +2,7 @@ const EventEmitter = require('events').EventEmitter
 const net = require('net')
 
 const socketUtils = require('../utils/socket')
-const bUtils = require('../ledger/BlockLattice')
+const Block = require('../ledger/Block')
 
 module.exports = {
   serveP2P
@@ -40,10 +40,10 @@ function serveP2P (kafium, options) {
           }
 
           if (data.startsWith('Block/')) { // Prob broken fix this
-            const updatedBlock = bUtils.Block.importFromJSON(JSON.parse(data.replace('Block/', '')))
+            const updatedBlock = Block.importFromJSON(JSON.parse(data.replace('Block/', '')))
             updatedBlock.signTransaction(JSON.parse(data.replace('Block/', '')).signature)
 
-            const targetBlock = bUtils.Block.importFromJSON(updatedBlock.toData())
+            const targetBlock = Block.importFromJSON(updatedBlock.toData())
             targetBlock.linkBlock(updatedBlock.hash)
             targetBlock.previousBlock = kafium.getLatestBlock(targetBlock.recipient).hash
 
@@ -135,7 +135,7 @@ function serveP2P (kafium, options) {
             p2pRequest.connect(auth.split('|')[1].split(':')[1], socket.remoteAddress.replace('::ffff:', ''), function () {
               p2pRequest.write(`requestBlock/${data.split('/')[1]}`)
               socketUtils.waitForData(p2pRequest, 'requestedBlock').then(data => {
-                const updatedBlock = bUtils.Block.importFromJSON(JSON.parse(data.toString().replace('requestedBlock/', '').replace('&&', '')))
+                const updatedBlock = Block.importFromJSON(JSON.parse(data.toString().replace('requestedBlock/', '').replace('&&', '')))
                 updatedBlock.signTransactionManually(JSON.parse(data.toString().replace('requestedBlock/', '').replace('&&', '')).signature)
                 kafium.queueBlock(updatedBlock)
               })
@@ -154,7 +154,7 @@ function serveP2P (kafium, options) {
   kafium.on('newBlockRequest', function (block) {
     knownPeers.broadcast(`updatedQueue/${block.hash}&&`)
     kafium.checkBlock(block).then(() => {
-      const targetBlock = bUtils.Block.importFromJSON(block.toData())
+      const targetBlock = Block.importFromJSON(block.toData())
       targetBlock.previousBlock = kafium.getLatestBlock(targetBlock.recipient)?.hash ?? ''
       targetBlock.linkBlock(block.calculateHash())
       block.linkBlock(targetBlock.calculateHash())

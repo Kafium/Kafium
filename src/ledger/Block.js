@@ -9,7 +9,7 @@ module.exports = class Block {
     this.blockType = type
     this.hash = null
     this.timestamp = data?.timestamp ?? Date.now()
-    this.previousBlock = data.previousBlock
+    this.previousBlock = data?.previousBlock ?? null
     this.sender = data.sender
     this.recipient = data.recipient
     this.amount = data.amount
@@ -36,7 +36,7 @@ module.exports = class Block {
   }
 
   static importFromJSON (JSONBlock) {
-    const block = new Block(JSONBlock)
+    const block = new Block(JSONBlock.blockType, JSONBlock)
     return block
   }
 
@@ -51,8 +51,8 @@ module.exports = class Block {
   isValid () {
     return new Promise((resolve, reject) => {
       if (this.blockType === 'TRANSFER') {
-        if (!this.sender.startsWith('kX') || !this.recipient.startsWith('kX')) return reject('WALLET_PREFIX')
-        if (this.sender.length !== 48 || this.recipient.length !== 48) return reject('WALLET_LENGTH')
+        if (!(this.sender.startsWith('kX') && this.recipient.startsWith('kX'))) return reject('WALLET_PREFIX')
+        if (!(this.sender.length === 47 && this.recipient.length === 47)) return reject('WALLET_LENGTH')
         if (this.calculateHash() !== this.hash) return reject('INVALID_HASH')
         if (this.sender === 'kX0000000000000000000000000000000000000000000000') return reject('BURN_ADDRESS')
         if (this.sender === this.recipient) return reject('SELF_SEND')
@@ -65,9 +65,8 @@ module.exports = class Block {
           reject('INVALID_WORK')
         }
 
-        tweetnacl.sign.detached.verify(Uint8Array.from(Buffer.from(this.hash, 'hex')), Uint8Array.from(Buffer.from(this.signature, 'hex')), Uint8Array.from(base62.decode(this.sender.substring(1, 41)))).then(bool => {
-          resolve(bool)
-        })
+        const message = tweetnacl.sign.open(Uint8Array.from(Buffer.from(this.signature, 'hex')), Uint8Array.from(base62.decode(this.sender.substring(2, 45))))
+        resolve(this.hash === Buffer.from(message).toString('hex'))
       } else {
         reject('INVALID_BLOCKTYPE')
       }

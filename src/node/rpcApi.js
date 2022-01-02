@@ -33,7 +33,7 @@ module.exports = class RPCApi extends events.EventEmitter {
           }
 
           if (request.method === "announceBlock") {
-            const block = Block.importFromJSON(request.args[0])
+            const block = Block.importFromJSON(JSON.parse(request.args[0]))
             this.kafium.queueBlock(block)
 
             returnedData = block.hash
