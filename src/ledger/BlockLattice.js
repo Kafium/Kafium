@@ -15,7 +15,6 @@ module.exports = class BlockLattice extends EventEmitter {
     const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = ?;").get(genesisReceiver)
     if (!table['count(*)']) {
       this.sql.prepare(`CREATE TABLE ${genesisReceiver} (blockType TEXT, hash TEXT, timestamp INTEGER, previousBlock TEXT, sender TEXT TEXT, recipient TEXT, amount TEXT, blockLink TEXT, work TEXT, signature TEXT);`).run()
-      this.sql.prepare(`CREATE UNIQUE INDEX ${genesisReceiver}_chain ON ${genesisReceiver} (hash);`).run()
       this.sql.pragma('synchronous = 1')
 
       this.sql.prepare(`INSERT INTO ${genesisReceiver} (blockType, hash, timestamp, previousBlock, sender, recipient, amount, blockLink, work, signature) VALUES (@blockType, @hash, @timestamp, @previousBlock, @sender, @recipient, @amount, @blockLink, @work, @signature);`).run(this.createGenesisBlock().toData())
@@ -33,7 +32,7 @@ module.exports = class BlockLattice extends EventEmitter {
   }
 
   createGenesisBlock () {
-    const genesis = new Block('TRANSFER', { sender: null, recipient: 'kX8KCiriNpMK5QU2Wdc0IEysFqIYAzqUREUuRpT3RxtABe0', amount: 10000000000000n })
+    const genesis = new Block('TRANSFER', { sender: null, recipient: 'kX8KCiriNpMK5QU2Wdc0IEysFqIYAzqUREUuRpT3RxtABe0', amount: 45000000000000000n })
     genesis.updateWork(KPoW.doWork(genesis.hash))
     return genesis
   }
@@ -43,7 +42,7 @@ module.exports = class BlockLattice extends EventEmitter {
     if (!table['count(*)']) {
       return null
     } else {
-      return this.sql.prepare(`SELECT * FROM ${address} ORDER BY hash DESC LIMIT ?;`).all(amount)
+      return this.sql.prepare(`SELECT * FROM ${address} ORDER BY timestamp DESC LIMIT ?;`).all(amount)
     }
   }
 
@@ -52,7 +51,7 @@ module.exports = class BlockLattice extends EventEmitter {
     if (!table['count(*)']) {
       return null
     } else {
-      return this.sql.prepare(`SELECT * FROM ${publicKey} ORDER BY hash DESC LIMIT 1;`).get() ?? null
+      return this.sql.prepare(`SELECT * FROM ${publicKey} ORDER BY timestamp DESC LIMIT 1;`).get() ?? null
     }
   }
 
@@ -90,7 +89,6 @@ module.exports = class BlockLattice extends EventEmitter {
     const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = ?;").get(publicKey)
     if (!table['count(*)']) {
       this.sql.prepare(`CREATE TABLE ${publicKey} (blockType TEXT, hash TEXT, timestamp INTEGER, previousBlock TEXT, sender TEXT, recipient TEXT, amount TEXT, blockLink TEXT, work TEXT, signature TEXT);`).run()
-      this.sql.prepare(`CREATE UNIQUE INDEX ${publicKey}_chain ON ${publicKey} (hash);`).run()
 
       this.sql.prepare(`INSERT INTO ${publicKey} (blockType, hash, timestamp, previousBlock, sender, recipient, amount, blockLink, work, signature) VALUES (@blockType, @hash, @timestamp, @previousBlock, @sender, @recipient, @amount, @blockLink, @work, @signature);`).run(block.toData())
     } else {
