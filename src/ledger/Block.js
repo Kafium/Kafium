@@ -53,6 +53,7 @@ module.exports = class Block {
       if (this.blockType === 'TRANSFER') {
         if (!(this.sender.startsWith('kX') && this.recipient.startsWith('kX'))) return reject('WALLET_PREFIX')
         if (!(this.sender.length === 47 && this.recipient.length === 47)) return reject('WALLET_LENGTH')
+        // Implement checksum checking
         if (this.calculateHash() !== this.hash) return reject('INVALID_HASH')
         if (this.sender === 'kX0000000000000000000000000000000000000000000000') return reject('BURN_ADDRESS')
         if (this.sender === this.recipient) return reject('SELF_SEND')

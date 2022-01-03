@@ -20,6 +20,12 @@ module.exports = class BlockLattice extends EventEmitter {
       this.sql.prepare(`INSERT INTO ${genesisReceiver} (blockType, hash, timestamp, previousBlock, sender, recipient, amount, blockLink, work, signature) VALUES (@blockType, @hash, @timestamp, @previousBlock, @sender, @recipient, @amount, @blockLink, @work, @signature);`).run(this.createGenesisBlock().toData())
     }
   }
+  
+  createGenesisBlock () {
+    const genesis = new Block('TRANSFER', { sender: null, recipient: 'kX8KCiriNpMK5QU2Wdc0IEysFqIYAzqUREUuRpT3RxtABe0', amount: 45000000000000000n })
+    genesis.updateWork(KPoW.doWork(genesis.hash))
+    return genesis
+  }
 
   getTotalBlocks () {
     let blockCount = 0
@@ -31,10 +37,10 @@ module.exports = class BlockLattice extends EventEmitter {
     return blockCount
   }
 
-  createGenesisBlock () {
-    const genesis = new Block('TRANSFER', { sender: null, recipient: 'kX8KCiriNpMK5QU2Wdc0IEysFqIYAzqUREUuRpT3RxtABe0', amount: 45000000000000000n })
-    genesis.updateWork(KPoW.doWork(genesis.hash))
-    return genesis
+  getTotalBlocksOfLattice (address) {
+    const blocks = this.sql.prepare(`SELECT count(*) FROM '${address}';`).get()
+
+    return blocks['count(*)']
   }
 
   queryChain (address, amount) {
@@ -46,12 +52,12 @@ module.exports = class BlockLattice extends EventEmitter {
     }
   }
 
-  getLatestBlock (publicKey) {
-    const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = ?;").get(publicKey)
+  getLatestBlock (address) {
+    const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = ?;").get(address)
     if (!table['count(*)']) {
       return null
     } else {
-      return this.sql.prepare(`SELECT * FROM ${publicKey} ORDER BY timestamp DESC LIMIT 1;`).get() ?? null
+      return this.sql.prepare(`SELECT * FROM ${address} ORDER BY timestamp DESC LIMIT 1;`).get() ?? null
     }
   }
 
@@ -85,15 +91,15 @@ module.exports = class BlockLattice extends EventEmitter {
     })
   }
 
-  addBlock (publicKey, block) {
-    const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = ?;").get(publicKey)
+  addBlock (address, block) {
+    const table = this.sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = ?;").get(address)
     if (!table['count(*)']) {
-      this.sql.prepare(`CREATE TABLE ${publicKey} (blockType TEXT, hash TEXT, timestamp INTEGER, previousBlock TEXT, sender TEXT, recipient TEXT, amount TEXT, blockLink TEXT, work TEXT, signature TEXT);`).run()
+      this.sql.prepare(`CREATE TABLE ${address} (blockType TEXT, hash TEXT, timestamp INTEGER, previousBlock TEXT, sender TEXT, recipient TEXT, amount TEXT, blockLink TEXT, work TEXT, signature TEXT);`).run()
 
-      this.sql.prepare(`INSERT INTO ${publicKey} (blockType, hash, timestamp, previousBlock, sender, recipient, amount, blockLink, work, signature) VALUES (@blockType, @hash, @timestamp, @previousBlock, @sender, @recipient, @amount, @blockLink, @work, @signature);`).run(block.toData())
+      this.sql.prepare(`INSERT INTO ${address} (blockType, hash, timestamp, previousBlock, sender, recipient, amount, blockLink, work, signature) VALUES (@blockType, @hash, @timestamp, @previousBlock, @sender, @recipient, @amount, @blockLink, @work, @signature);`).run(block.toData())
     } else {
       try {
-        this.sql.prepare(`INSERT INTO ${publicKey} (blockType, hash, timestamp, previousBlock, sender, recipient, amount, blockLink, work, signature) VALUES (@blockType, @hash, @timestamp, @previousBlock, @sender, @recipient, @amount, @blockLink, @work, @signature);`).run(block.toData())
+        this.sql.prepare(`INSERT INTO ${address} (blockType, hash, timestamp, previousBlock, sender, recipient, amount, blockLink, work, signature) VALUES (@blockType, @hash, @timestamp, @previousBlock, @sender, @recipient, @amount, @blockLink, @work, @signature);`).run(block.toData())
       } catch (err) {}
     }
 

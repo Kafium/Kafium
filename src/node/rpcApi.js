@@ -47,6 +47,10 @@ module.exports = class RPCApi extends events.EventEmitter {
             returnedData = this.kafium.getTotalBlocks().toString()
           }
 
+          if (request.method === "getTotalBlocksOfLattice") {
+            returnedData = this.kafium.getTotalBlocksOfLattice(request.args[0]).toString()
+          }
+
           if (request.method === "queryChain") {
             returnedData = this.kafium.queryChain(request.args[0], request.args[1])
           }
@@ -56,7 +60,7 @@ module.exports = class RPCApi extends events.EventEmitter {
         } catch (err) { res.end(JSON.stringify({ "success": false, "error": err.stack.split('\n')[0] }) ) }
       })
     } else {
-      res.end('wtf are u trying')
+      res.end()
     }}).listen(port)
   }
 }
