@@ -83,10 +83,10 @@ module.exports = class BlockLattice extends EventEmitter {
             if (Math.sign(block.amount) === 1) {
               if (block.previousBlock === this.getLatestBlock(block.sender)?.hash || block.previousBlock === this.getLatestBlock(block.recipient)?.hash) {
                 resolve(true)
-              } else { reject('INVALID_PREVIOUSBLOCK') }
-            } else { reject('INVALID_AMOUNT') }
-          } else { reject('INSUFFICENT_BALANCE') }
-        } else { reject('NOT_VALID') }
+              } else { reject('invalid_prevblock') }
+            } else { reject('invalid_amount') }
+          } else { reject('insufficent_balance') }
+        } else { reject('not_valid') }
       }).catch(err => { reject(err) })
     })
   }

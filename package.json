@@ -15,8 +15,8 @@
     },
     "dependencies": {
         "better-sqlite3": "^7.4.3",
-        "kafiumJS": "Kafium/kafiumJS",
         "KPoW": "Kafium/KPoW",
-        "tweetnacl": "^1.0.3"
+        "tweetnacl": "^1.0.3",
+        "CRC8": "Kafium/CRC8"
     }
 }
